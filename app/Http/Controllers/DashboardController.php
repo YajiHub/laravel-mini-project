@@ -24,7 +24,7 @@ class DashboardController extends Controller
             'out_of_stock' => Product::active()->where('quantity', 0)->count(),
             'total_users' => User::where('is_active', true)->count(),
             'total_sales_today' => PosTransaction::where('status', 'completed')
-                ->whereDate('created_at', today())
+                ->whereDate('transaction_date', today())
                 ->sum('total'),
         ];
 
@@ -60,6 +60,7 @@ class DashboardController extends Controller
         $topProducts = \App\Models\PosTransactionItem::select('product_name')
             ->selectRaw('SUM(quantity) as total_sold')
             ->selectRaw('SUM(subtotal) as revenue')
+            ->whereHas('transaction', fn($q) => $q->where('status', 'completed'))
             ->groupBy('product_name')
             ->orderBy('total_sold', 'desc')
             ->limit(5)

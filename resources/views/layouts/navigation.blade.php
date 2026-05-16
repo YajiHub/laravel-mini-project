@@ -40,10 +40,13 @@
                             <i class="fas fa-dolly mr-2"></i>Stock
                         </a>
 
-                    {{-- Store Manager: Reports and Analytics --}}
+                    {{-- Store Manager: Reports and Settings --}}
                     @elseif(auth()->user()->role->name === 'store_manager')
                         <a href="{{ route('pos.transactions') }}" class="inline-flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('pos.transactions') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-gray-900' }}">
-                            <i class="fas fa-chart-bar mr-2"></i>Transaction Reports
+                            <i class="fas fa-chart-bar mr-2"></i>Transactions
+                        </a>
+                        <a href="{{ route('settings.index') }}" class="inline-flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('settings.*') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-gray-900' }}">
+                            <i class="fas fa-cog mr-2"></i>Settings
                         </a>
 
                     {{-- Admin: System Administration Only --}}

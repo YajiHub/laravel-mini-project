@@ -2,63 +2,66 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
+use App\Models\StockTransaction;
 use Illuminate\Http\Request;
 
 class StockTransactionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $query = StockTransaction::with('product', 'user')
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('product_id')) {
+            $query->where('product_id', $request->product_id);
+        }
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+        if ($request->filled('from_date')) {
+            $query->whereDate('created_at', '>=', $request->from_date);
+        }
+        if ($request->filled('to_date')) {
+            $query->whereDate('created_at', '<=', $request->to_date);
+        }
+
+        $transactions = $query->paginate(25)->withQueryString();
+        $products     = Product::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+
+        return view('stock-transactions.index', compact('transactions', 'products'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
-    }
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'type'       => 'required|in:stock_in,stock_out,adjustment',
+            'quantity'   => 'required|integer|min:1',
+            'notes'      => 'nullable|string|max:500',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        $product = Product::findOrFail($validated['product_id']);
+        $before  = $product->quantity;
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+        if ($validated['type'] === 'stock_out' && $before < $validated['quantity']) {
+            return back()->withErrors(['quantity' => 'Insufficient stock. Available: ' . $before])->withInput();
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+        if ($validated['type'] === 'stock_in' || $validated['type'] === 'adjustment') {
+            $product->increment('quantity', $validated['quantity']);
+        } else {
+            $product->decrement('quantity', $validated['quantity']);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        StockTransaction::create([
+            'product_id' => $product->id,
+            'user_id'    => auth()->id(),
+            'type'       => $validated['type'],
+            'quantity'   => $validated['quantity'],
+            'notes'      => $validated['notes'] ?? null,
+        ]);
+
+        return back()->with('success', 'Stock transaction recorded successfully.');
     }
 }
