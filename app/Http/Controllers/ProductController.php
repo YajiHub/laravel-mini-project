@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Supplier;
+use App\Models\ProductVariant;
 use App\Models\AuditLog;
 use App\Imports\ProductsImport;
 use App\Exports\ProductsExport;
@@ -284,5 +285,45 @@ class ProductController extends Controller
     public function exportExcel()
     {
         return Excel::download(new ProductsExport(), 'products-' . date('Y-m-d') . '.xlsx');
+    }
+
+    public function storeVariant(Request $request, Product $product)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'type' => 'required|string|max:50',
+            'value' => 'required|string|max:100',
+            'sku' => 'required|string|unique:product_variants,sku|max:100',
+            'quantity' => 'required|integer|min:0',
+            'price_modifier' => 'nullable|numeric',
+            'low_stock_threshold' => 'nullable|integer|min:0',
+        ]);
+
+        $product->variants()->create($validated);
+
+        return back()->with('success', 'Variant added successfully.');
+    }
+
+    public function updateVariant(Request $request, Product $product, ProductVariant $variant)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'type' => 'required|string|max:50',
+            'value' => 'required|string|max:100',
+            'sku' => 'required|string|unique:product_variants,sku,' . $variant->id . '|max:100',
+            'quantity' => 'required|integer|min:0',
+            'price_modifier' => 'nullable|numeric',
+            'low_stock_threshold' => 'nullable|integer|min:0',
+        ]);
+
+        $variant->update($validated);
+
+        return back()->with('success', 'Variant updated successfully.');
+    }
+
+    public function destroyVariant(Product $product, ProductVariant $variant)
+    {
+        $variant->delete();
+        return back()->with('success', 'Variant removed.');
     }
 }

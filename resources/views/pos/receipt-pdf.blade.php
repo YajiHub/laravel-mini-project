@@ -11,13 +11,13 @@ body {
     background: #fff;
     width: 100%;
 }
-.receipt { width: 100%; padding: 14px 16px; }
+.receipt { width: 100%; padding: 10px 12px; }
 
 /* Header */
-.header { text-align: center; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 2px dashed #bbb; }
-.store-name { font-size: 16px; font-weight: 700; color: #0f172a; letter-spacing: -0.3px; }
+.header { text-align: center; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px dashed #bbb; }
+.store-name { font-size: 15px; font-weight: 700; color: #0f172a; }
 .store-sub  { font-size: 9px; color: #64748b; margin-top: 2px; }
-.store-receipt-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; margin-top: 6px; }
+.store-receipt-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; margin-top: 5px; }
 
 /* Void stamp */
 .void-stamp {

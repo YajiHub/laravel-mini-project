@@ -396,7 +396,11 @@ class PosController extends Controller
         $settings = StoreSetting::asArray();
 
         $pdf = Pdf::loadView('pos.receipt-pdf', compact('transaction', 'settings'))
-            ->setPaper('A5', 'portrait');
+            ->setPaper('A4', 'portrait')
+            ->setOption('margin-top', 10)
+            ->setOption('margin-bottom', 10)
+            ->setOption('margin-left', 15)
+            ->setOption('margin-right', 15);
 
         return $pdf->stream("receipt-{$transaction->transaction_number}.pdf");
     }

@@ -67,6 +67,9 @@ Route::middleware(['auth', 'throttle:100,1'])->group(function () {
         Route::post('/products-import', [ProductController::class, 'import'])->name('products.import.post');
         Route::get('/products-export', [ProductController::class, 'exportExcel'])->name('products.export.excel');
         Route::resource('products', ProductController::class);
+        Route::post('/products/{product}/variants', [ProductController::class, 'storeVariant'])->name('products.variants.store');
+        Route::put('/products/{product}/variants/{variant}', [ProductController::class, 'updateVariant'])->name('products.variants.update');
+        Route::delete('/products/{product}/variants/{variant}', [ProductController::class, 'destroyVariant'])->name('products.variants.destroy');
         Route::resource('categories', CategoryController::class);
         Route::resource('suppliers', SupplierController::class);
     });

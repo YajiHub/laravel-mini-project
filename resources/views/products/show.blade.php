@@ -124,6 +124,93 @@
             </div>
         @endif
 
+        @if($product->variants->count() > 0)
+            <div class="bg-white shadow rounded-lg p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Product Variants</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Value</th>
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price Adj</th>
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach($product->variants as $variant)
+                                <tr>
+                                    <td class="px-3 py-2 text-sm">{{ $variant->type }}</td>
+                                    <td class="px-3 py-2 text-sm">{{ $variant->value }}</td>
+                                    <td class="px-3 py-2 text-sm font-mono text-gray-500">{{ $variant->sku }}</td>
+                                    <td class="px-3 py-2 text-sm">
+                                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $variant->quantity <= $variant->low_stock_threshold ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' }}">
+                                            {{ $variant->quantity }}
+                                        </span>
+                                    </td>
+                                    <td class="px-3 py-2 text-sm">{{ $variant->price_modifier > 0 ? '+' : '' }}₱{{ number_format($variant->price_modifier, 2) }}</td>
+                                    <td class="px-3 py-2 text-sm">
+                                        <button onclick="editVariant({{ $variant->id }}, '{{ $variant->type }}', '{{ $variant->value }}', '{{ $variant->sku }}', {{ $variant->quantity }}, {{ $variant->price_modifier }}, {{ $variant->low_stock_threshold }})" class="text-yellow-600 hover:text-yellow-800 mr-2">Edit</button>
+                                        <form method="POST" action="{{ route('products.variants.destroy', [$product, $variant]) }}" class="inline" onsubmit="return confirm('Remove this variant?')">
+                                            @csrf @method('DELETE')
+                                            <button class="text-red-600 hover:text-red-800">Remove</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
+
+        {{-- Add/Edit Variant Form --}}
+        <div class="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4" id="variant-form-title">Add Variant</h2>
+            <form id="variant-form" method="POST" action="{{ route('products.variants.store', $product) }}" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                @csrf
+                <input type="hidden" name="_method" id="variant-method" value="POST">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <select name="type" id="variant-type" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-blue-500">
+                        <option value="size">Size</option>
+                        <option value="color">Color</option>
+                        <option value="gauge">Gauge</option>
+                        <option value="thickness">Thickness</option>
+                        <option value="length">Length</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Value</label>
+                    <input type="text" name="value" id="variant-value" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-blue-500" placeholder="e.g., 10mm, Red, 5ft">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Name (visible)</label>
+                    <input type="text" name="name" id="variant-name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-blue-500" placeholder="e.g., 10mm Rebar">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
+                    <input type="text" name="sku" id="variant-sku" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-blue-500" placeholder="e.g., REB-10MM-V1">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                    <input type="number" name="quantity" id="variant-qty" required min="0" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Price Modifier (₱)</label>
+                    <input type="number" name="price_modifier" id="variant-price" step="0.01" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-blue-500" placeholder="Additional price">
+                </div>
+                <div class="md:col-span-3 flex justify-end gap-3">
+                    <input type="hidden" name="low_stock_threshold" id="variant-threshold" value="5">
+                    <button type="button" onclick="resetVariantForm()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700">Save Variant</button>
+                </div>
+            </form>
+        </div>
+
         @if($product->stockTransactions->count() > 0)
             <div class="bg-white shadow rounded-lg p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Stock Transactions</h2>
@@ -195,5 +282,31 @@
 document.getElementById('delete-modal').addEventListener('click', function(e){
     if(e.target===this) this.style.display='none';
 });
+
+function editVariant(id, type, value, sku, qty, price, threshold) {
+    document.getElementById('variant-form-title').textContent = 'Edit Variant';
+    document.getElementById('variant-form').action = '{{ url('products/'.$product->id.'/variants') }}/' + id;
+    document.getElementById('variant-method').value = 'PUT';
+    document.getElementById('variant-type').value = type;
+    document.getElementById('variant-value').value = value;
+    document.getElementById('variant-name').value = value;
+    document.getElementById('variant-sku').value = sku;
+    document.getElementById('variant-qty').value = qty;
+    document.getElementById('variant-price').value = price;
+    document.getElementById('variant-threshold').value = threshold;
+}
+
+function resetVariantForm() {
+    document.getElementById('variant-form-title').textContent = 'Add Variant';
+    document.getElementById('variant-form').action = '{{ route('products.variants.store', $product) }}';
+    document.getElementById('variant-method').value = 'POST';
+    document.getElementById('variant-type').value = 'size';
+    document.getElementById('variant-value').value = '';
+    document.getElementById('variant-name').value = '';
+    document.getElementById('variant-sku').value = '';
+    document.getElementById('variant-qty').value = 0;
+    document.getElementById('variant-price').value = 0;
+    document.getElementById('variant-threshold').value = 5;
+}
 </script>
 @endsection

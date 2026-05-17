@@ -78,6 +78,17 @@ class AuthController extends Controller
             // Record successful login
             LoginAttempt::recordAttempt($request->email, true);
 
+            // Log authentication
+            \App\Models\AuditLog::create([
+                'user_id' => $user->id,
+                'action' => 'login',
+                'model_type' => 'User',
+                'model_id' => $user->id,
+                'description' => 'User logged in',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
             // Check MFA
             if ($user->mfa_enabled) {
                 Auth::logout();
@@ -159,9 +170,23 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $userId = Auth::id();
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        if ($userId) {
+            \App\Models\AuditLog::create([
+                'user_id' => $userId,
+                'action' => 'logout',
+                'model_type' => 'User',
+                'model_id' => $userId,
+                'description' => 'User logged out',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+        }
+
         return redirect(route('login'))->with('success', 'Logged out successfully');
     }
 

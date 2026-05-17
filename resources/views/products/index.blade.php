@@ -3,7 +3,6 @@
 @section('content')
 <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto">
-        <!-- Header -->
         <div class="mb-8">
             <div class="flex items-center justify-between">
                 <div>
@@ -13,9 +12,11 @@
                 <div class="flex items-center gap-2">
                     <a href="{{ route('products.export.excel') }}" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
                         <i class="fas fa-file-excel mr-2 text-green-700"></i>Excel
-                    </a> class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
+                    </a>
+                    <a href="{{ route('products.import') }}" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
                         <i class="fas fa-file-import mr-2 text-purple-600"></i>Import
-                    </a> class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
+                    </a>
+                    <a href="{{ route('reports.inventory-csv') }}" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
                         <i class="fas fa-file-csv mr-2 text-green-600"></i>Export CSV
                     </a>
                     <a href="{{ route('reports.inventory-pdf') }}" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
@@ -28,7 +29,6 @@
             </div>
         </div>
 
-        <!-- Alerts -->
         @if ($errors->any())
             <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
                 <div class="text-red-800">
@@ -48,7 +48,6 @@
             </div>
         @endif
 
-        <!-- Filters -->
         <div class="mb-6 bg-white shadow rounded-lg p-6">
             <form method="GET" action="{{ route('products.index') }}" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -103,7 +102,6 @@
             </form>
         </div>
 
-        <!-- Products Table -->
         <div class="bg-white shadow rounded-lg overflow-hidden">
             @if($products->count() > 0)
                 <div class="overflow-x-auto">
@@ -161,19 +159,36 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <a href="{{ route('products.show', $product) }}" class="text-blue-600 hover:text-blue-900">View</a>
                                         <a href="{{ route('products.edit', $product) }}" class="ml-4 text-yellow-600 hover:text-yellow-900">Edit</a>
-                                        <form action="{{ route('products.destroy', $product) }}" method="POST" class="inline" onclick="return confirm('Delete this product?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="ml-4 text-red-600 hover:text-red-900">Delete</button>
-                                        </form>
+                                        <button onclick="document.getElementById('delete-modal-{{ $product->id }}').style.display='flex'" class="ml-4 text-red-600 hover:text-red-900">Delete</button>
+
+                                        {{-- Delete Modal per product --}}
+                                        <div id="delete-modal-{{ $product->id }}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:center;justify-content:center;">
+                                            <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+                                                <div class="flex items-center justify-between mb-4">
+                                                    <h3 class="text-lg font-bold text-red-700"><i class="fas fa-exclamation-triangle mr-2"></i>Confirm Deletion</h3>
+                                                    <button onclick="document.getElementById('delete-modal-{{ $product->id }}').style.display='none'" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+                                                </div>
+                                                <p class="text-sm text-gray-600 mb-4">Delete <strong>{{ $product->name }}</strong>? This cannot be undone.</p>
+                                                <form method="POST" action="{{ route('products.destroy', $product) }}" class="space-y-4">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <input type="password" name="password" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Your password to confirm">
+                                                    <div class="flex gap-3">
+                                                        <button type="submit" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-sm">Delete</button>
+                                                        <button type="button" onclick="document.getElementById('delete-modal-{{ $product->id }}').style.display='none'" class="flex-1 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg text-sm">Cancel</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <script>
+                                        document.getElementById('delete-modal-{{ $product->id }}').addEventListener('click', function(e){ if(e.target===this) this.style.display='none'; });
+                                        </script>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Pagination -->
                 <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
                     {{ $products->appends(request()->query())->links() }}
                 </div>
