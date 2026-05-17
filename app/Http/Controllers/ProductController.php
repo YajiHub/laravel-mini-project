@@ -6,8 +6,11 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Supplier;
 use App\Models\AuditLog;
+use App\Imports\ProductsImport;
+use App\Exports\ProductsExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
@@ -174,8 +177,12 @@ class ProductController extends Controller
     /**
      * Remove the specified product from storage (soft delete).
      */
-    public function destroy(Product $product)
+    public function destroy(Product $product, Request $request)
     {
+        if (! \Illuminate\Support\Facades\Hash::check($request->password, auth()->user()->password)) {
+            return back()->with('error', 'Invalid password. Deletion cancelled.');
+        }
+
         $oldValues = $product->toArray();
 
         // Delete product image from storage
@@ -236,5 +243,46 @@ class ProductController extends Controller
         return response($csv)
             ->header('Content-Type', 'text/csv')
             ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
+    }
+
+    public function showImport()
+    {
+        return view('products.import');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,xlsx,xls|max:10240',
+        ]);
+
+        $import = new ProductsImport();
+        Excel::import($import, $request->file('file'));
+
+        $imported = $import->getImportedCount();
+        $failures = $import->failures();
+
+        AuditLog::create([
+            'action'     => 'import',
+            'model_type' => Product::class,
+            'user_id'    => auth()->id(),
+            'description' => "Imported {$imported} products" . ($failures->count() ? " ({$failures->count()} skipped)" : ''),
+            'ip_address' => $request->ip(),
+            'user_agent'  => $request->userAgent(),
+        ]);
+
+        if ($failures->count() > 0) {
+            $errors = $failures->map(fn($f) => "Row {$f->row()}: " . implode(', ', $f->errors()))->toArray();
+            return back()
+                ->with('success', "{$imported} products imported.")
+                ->with('import_errors', $errors);
+        }
+
+        return redirect()->route('products.index')->with('success', "{$imported} products imported successfully.");
+    }
+
+    public function exportExcel()
+    {
+        return Excel::download(new ProductsExport(), 'products-' . date('Y-m-d') . '.xlsx');
     }
 }

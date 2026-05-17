@@ -27,7 +27,7 @@ class StockTransactionController extends Controller
         }
 
         $transactions = $query->paginate(25)->withQueryString();
-        $products     = Product::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $products     = Product::orderBy('name')->get(['id', 'name']);
 
         return view('stock-transactions.index', compact('transactions', 'products'));
     }
@@ -48,18 +48,25 @@ class StockTransactionController extends Controller
             return back()->withErrors(['quantity' => 'Insufficient stock. Available: ' . $before])->withInput();
         }
 
-        if ($validated['type'] === 'stock_in' || $validated['type'] === 'adjustment') {
+        if ($validated['type'] === 'stock_in') {
             $product->increment('quantity', $validated['quantity']);
-        } else {
+        } elseif ($validated['type'] === 'stock_out') {
             $product->decrement('quantity', $validated['quantity']);
+        } elseif ($validated['type'] === 'adjustment') {
+            $product->update(['quantity' => $validated['quantity']]);
         }
 
+        $product->refresh();
+
         StockTransaction::create([
-            'product_id' => $product->id,
-            'user_id'    => auth()->id(),
-            'type'       => $validated['type'],
-            'quantity'   => $validated['quantity'],
-            'notes'      => $validated['notes'] ?? null,
+            'product_id'      => $product->id,
+            'user_id'         => auth()->id(),
+            'type'            => $validated['type'],
+            'quantity'        => $validated['quantity'],
+            'quantity_before' => $before,
+            'quantity_after'  => $product->quantity,
+            'reference'       => 'TXN-' . now()->format('YmdHis'),
+            'notes'           => $validated['notes'] ?? null,
         ]);
 
         return back()->with('success', 'Stock transaction recorded successfully.');

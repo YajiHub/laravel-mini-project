@@ -63,14 +63,9 @@
 
             <!-- Notification Bell -->
             <div class="hidden sm:flex sm:items-center sm:ms-4">
-                @php
-                    $unreadCount = \App\Models\Notification::where('user_id', auth()->id())->whereNull('read_at')->count();
-                @endphp
                 <a href="{{ route('notifications.index') }}" class="relative p-2 text-gray-500 hover:text-blue-600 transition">
                     <i class="fas fa-bell text-lg"></i>
-                    @if($unreadCount > 0)
-                    <span class="absolute -top-0.5 -right-0.5 flex items-center justify-center w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full">{{ $unreadCount > 9 ? '9+' : $unreadCount }}</span>
-                    @endif
+                    <span id="notification-badge" class="absolute -top-0.5 -right-0.5 flex items-center justify-center w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full hidden"></span>
                 </a>
             </div>
 

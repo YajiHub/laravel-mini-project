@@ -37,7 +37,7 @@ class ProductPolicy
      */
     public function update(User $user, Product $product): bool
     {
-        return $user->role === 'admin' || $user->is_active;
+        return $user->role->name === 'admin' || $user->is_active;
     }
 
 
@@ -46,7 +46,7 @@ class ProductPolicy
      */
     public function delete(User $user, Product $product): bool
     {
-        return $user->role === 'admin';
+        return $user->role->name === 'admin';
     }
 
     /**
@@ -54,7 +54,7 @@ class ProductPolicy
      */
     public function restore(User $user, Product $product): bool
     {
-        return $user->role === 'admin';
+        return $user->role->name === 'admin';
     }
 
     /**

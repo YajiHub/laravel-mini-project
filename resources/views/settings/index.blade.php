@@ -79,6 +79,30 @@
                 </div>
             </div>
         </form>
+
+        {{-- Backup Section --}}
+        <div class="mt-8 bg-white shadow rounded-xl overflow-hidden">
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-database mr-2 text-green-600"></i>Backup & Maintenance
+                </h2>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-sm text-gray-600">
+                    Create a manual database backup. Automated backups run weekly on Sundays at 2:00 AM.
+                    Backups are retained for 30 days.
+                </p>
+                <div class="flex items-center gap-3">
+                    <form method="POST" action="{{ route('backup.run') }}" onsubmit="return confirm('Start a manual database backup now?')">
+                        @csrf
+                        <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg text-sm transition">
+                            <i class="fas fa-download mr-2"></i>Backup Now
+                        </button>
+                    </form>
+                    <span class="text-xs text-gray-400">Database backup (PostgreSQL) — stored in <code>storage/app/QueenBuilders-IMS/</code></span>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

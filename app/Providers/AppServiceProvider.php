@@ -20,8 +20,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::define('manage-users', fn($user) => $user->role === 'admin');
-        Gate::define('view-audit-logs', fn($user) => $user->role === 'admin');
-        Gate::define('manage-settings', fn($user) => $user->role === 'admin');
+        Gate::define('manage-users', fn($user) => $user->role?->name === 'admin');
+        Gate::define('view-audit-logs', fn($user) => $user->role?->name === 'admin');
+        Gate::define('manage-settings', fn($user) => $user->role?->name === 'admin');
     }
 }

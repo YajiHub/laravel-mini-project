@@ -11,12 +11,13 @@ class Product extends Model
 
     protected $fillable = [
         'category_id', 'supplier_id', 'name', 'sku',
-        'description', 'price', 'quantity',
+        'description', 'price', 'cost', 'quantity',
         'low_stock_threshold', 'unit', 'image', 'is_active'
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
+        'cost' => 'decimal:2',
         'quantity' => 'integer',
         'low_stock_threshold' => 'integer',
         'is_active' => 'boolean',
@@ -99,7 +100,7 @@ class Product extends Model
             'type' => $type, // 'in', 'out', 'adjustment'
             'quantity' => abs($quantity),
             'notes' => $notes,
-            'reference_number' => 'TXN-' . now()->format('YmdHis'),
+            'reference' => 'TXN-' . now()->format('YmdHis'),
         ]);
     }
 }

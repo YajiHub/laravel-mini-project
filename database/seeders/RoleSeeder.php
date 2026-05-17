@@ -37,12 +37,6 @@ class RoleSeeder extends Seeder
                 'description' => 'View analytics, daily reports, sales trends',
                 'is_active' => true,
             ],
-            [
-                'name' => 'viewer',
-                'display_name' => 'Viewer',
-                'description' => 'Read-only access to reports and dashboards',
-                'is_active' => false, // Disabled — not used in this system
-            ],
         ];
 
         foreach ($roles as $role) {

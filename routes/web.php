@@ -37,11 +37,17 @@ Route::post('/register', function () {
 
 Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
 Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
+Route::post('/reset-password', [AuthController::class, 'reset'])->name('password.store');
+
+// MFA verification
+Route::get('/mfa-verify', [AuthController::class, 'showMfaVerify'])->name('mfa.verify');
+Route::post('/mfa-verify', [AuthController::class, 'verifyMfa'])->name('mfa.verify.post');
 
 // ============================================================
 // AUTHENTICATED ROUTES
 // ============================================================
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'throttle:100,1'])->group(function () {
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -51,11 +57,15 @@ Route::middleware('auth')->group(function () {
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/poll', [NotificationController::class, 'poll'])->name('notifications.poll');
     Route::put('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
 
     // Inventory Management - Inventory Manager & Admin only
     Route::middleware('role:inventory_manager|admin')->group(function () {
+        Route::get('/products-import', [ProductController::class, 'showImport'])->name('products.import');
+        Route::post('/products-import', [ProductController::class, 'import'])->name('products.import.post');
+        Route::get('/products-export', [ProductController::class, 'exportExcel'])->name('products.export.excel');
         Route::resource('products', ProductController::class);
         Route::resource('categories', CategoryController::class);
         Route::resource('suppliers', SupplierController::class);
@@ -103,6 +113,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/inventory-csv', [ReportController::class, 'inventoryCsv'])->name('reports.inventory-csv');
         Route::get('/reports/sales-csv', [ReportController::class, 'salesCsv'])->name('reports.sales-csv');
         Route::get('/reports/sales-pdf', [ReportController::class, 'salesSummaryPdf'])->name('reports.sales-pdf');
+        // Backup
+        Route::post('/backup', [StoreSettingController::class, 'backup'])->name('backup.run');
     });
 });
 
@@ -125,6 +137,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
+    Route::get('/profile/mfa', [ProfileController::class, 'setupMfa'])->name('profile.mfa');
+    Route::post('/profile/mfa/enable', [ProfileController::class, 'enableMfa'])->name('profile.mfa.enable');
+    Route::post('/profile/mfa/disable', [ProfileController::class, 'disableMfa'])->name('profile.mfa.disable');
     Route::post('/email/verification-notification', function () {
         return back()->with('status', 'verification-link-sent');
     })->middleware('throttle:6,1')->name('verification.send');

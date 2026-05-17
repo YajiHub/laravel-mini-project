@@ -81,7 +81,6 @@ class PermissionSeeder extends Seeder
         $cashier = \App\Models\Role::where('name', 'cashier')->first();
         $inventoryManager = \App\Models\Role::where('name', 'inventory_manager')->first();
         $storeManager = \App\Models\Role::where('name', 'store_manager')->first();
-        $viewer = \App\Models\Role::where('name', 'viewer')->first();
 
         // Admin - Full access
         if ($admin) {
@@ -117,16 +116,6 @@ class PermissionSeeder extends Seeder
                 'view_dashboard', 'view_audit_logs',
             ])->get();
             $storeManager->permissions()->sync($managerPermissions->pluck('id'));
-        }
-
-        // Viewer - Read-only
-        if ($viewer) {
-            $viewerPermissions = \App\Models\Permission::whereIn('name', [
-                'view_products', 'view_categories', 'view_suppliers',
-                'view_stock_transactions', 'view_reports', 'view_audit_logs',
-                'view_dashboard',
-            ])->get();
-            $viewer->permissions()->sync($viewerPermissions->pluck('id'));
         }
     }
 }

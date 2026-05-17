@@ -8,7 +8,7 @@ class StockTransaction extends Model
 {
     protected $fillable = [
         'product_id', 'product_variant_id', 'user_id',
-        'type', 'quantity', 'notes', 'reference_number'
+        'type', 'quantity', 'quantity_before', 'quantity_after', 'notes', 'reference'
     ];
 
     protected $casts = [

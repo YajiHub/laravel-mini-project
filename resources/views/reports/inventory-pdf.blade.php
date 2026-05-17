@@ -61,14 +61,14 @@
       <td class="text-right">
         @if($p->quantity == 0)
           <span class="badge-gray">0</span>
-        @elseif($p->quantity <= $p->reorder_level)
+        @elseif($p->quantity <= $p->low_stock_threshold)
           <span class="badge-red">{{ $p->quantity }}</span>
         @else
           <span class="badge-green">{{ $p->quantity }}</span>
         @endif
       </td>
       <td>{{ $p->unit }}</td>
-      <td class="text-right">{{ $p->reorder_level }}</td>
+      <td class="text-right">{{ $p->low_stock_threshold }}</td>
       <td>
         @if($p->is_active)
           <span class="badge-green">Active</span>

@@ -74,6 +74,18 @@
                 </label>
             </div>
 
+            @if(session()->has('captcha'))
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Security Check: {{ session('captcha.question') }} = ?
+                </label>
+                <input type="number" name="captcha_answer" required
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter answer">
+                @error('captcha_answer')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+            @endif
+
             <button type="submit"
                 class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                 <i class="fas fa-sign-in-alt mr-2"></i>Sign In

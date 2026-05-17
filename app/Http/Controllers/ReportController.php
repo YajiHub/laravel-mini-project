@@ -41,7 +41,7 @@ class ReportController extends Controller
 
         $callback = function () use ($products) {
             $f = fopen('php://output', 'w');
-            fputcsv($f, ['SKU', 'Product Name', 'Category', 'Supplier', 'Unit Price', 'Quantity', 'Unit', 'Reorder Level', 'Status']);
+            fputcsv($f, ['SKU', 'Product Name', 'Category', 'Supplier', 'Unit Price', 'Quantity', 'Unit', 'Low Stock Threshold', 'Status']);
             foreach ($products as $p) {
                 fputcsv($f, [
                     $p->sku,
@@ -51,7 +51,7 @@ class ReportController extends Controller
                     number_format($p->price, 2),
                     $p->quantity,
                     $p->unit,
-                    $p->reorder_level,
+                    $p->low_stock_threshold,
                     $p->is_active ? 'Active' : 'Inactive',
                 ]);
             }

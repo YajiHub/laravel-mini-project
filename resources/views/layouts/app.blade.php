@@ -41,6 +41,44 @@
             @yield('content')
         </div>
 
+        <!-- Notification Polling (Real-time updates every 30s) -->
+        <script>
+        (function(){
+            const badge = document.getElementById('notification-badge');
+            let lastCount = 0;
+
+            function fetchNotifications() {
+                fetch('{{ route("notifications.poll") }}', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    const count = data.unread_count;
+                    if (badge) {
+                        if (count > 0) {
+                            badge.textContent = count > 9 ? '9+' : count;
+                            badge.classList.remove('hidden');
+                            if (count > lastCount) {
+                                badge.classList.add('animate-pulse');
+                                setTimeout(() => badge.classList.remove('animate-pulse'), 1000);
+                            }
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+                        lastCount = count;
+                    }
+                })
+                .catch(() => {});
+            }
+
+            fetchNotifications();
+            setInterval(fetchNotifications, 30000);
+        })();
+        </script>
+
         <!-- Session Timeout Warning (25 min idle → warn, 30 min → logout) -->
         <div id="session-warning" style="display:none;position:fixed;bottom:24px;right:24px;z-index:9999;background:#1e3a5f;color:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:320px;font-family:inherit">
             <div style="font-weight:700;margin-bottom:6px"><i class="fas fa-clock" style="margin-right:6px"></i>Session Expiring</div>

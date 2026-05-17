@@ -7,6 +7,7 @@ use App\Models\LoginAttempt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
@@ -48,6 +49,23 @@ class AuthController extends Controller
             ])->withInput($request->only('email'));
         }
 
+        // CAPTCHA check after 3 failed attempts
+        if ($recentFailedAttempts >= 3) {
+            if (! session()->has('captcha')) {
+                $request->session()->put('captcha', [
+                    'question' => $a = random_int(1, 20) . ' + ' . $b = random_int(1, 20),
+                    'answer' => $a + $b,
+                ]);
+                return back()->withInput($request->only('email'));
+            }
+            $captcha = session('captcha');
+            if (! $request->captcha_answer || (int) $request->captcha_answer !== $captcha['answer']) {
+                $request->session()->forget('captcha');
+                return back()->withErrors(['captcha_answer' => 'Incorrect answer.'])->withInput($request->only('email'));
+            }
+            $request->session()->forget('captcha');
+        }
+
         // Attempt authentication
         $credentials = [
             'email' => $request->email,
@@ -55,11 +73,20 @@ class AuthController extends Controller
         ];
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
+            $user = Auth::user();
+
             // Record successful login
             LoginAttempt::recordAttempt($request->email, true);
 
+            // Check MFA
+            if ($user->mfa_enabled) {
+                Auth::logout();
+                session(['mfa_pending' => $user->id, 'mfa_remember' => $request->filled('remember')]);
+                return redirect()->route('mfa.verify');
+            }
+
             // Update last login timestamp
-            Auth::user()->update(['last_login_at' => now()]);
+            $user->update(['last_login_at' => now()]);
 
             $request->session()->regenerate();
             return redirect()->intended(route('dashboard'))->with('success', 'Welcome back!');
@@ -100,14 +127,14 @@ class AuthController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        // Create user with staff role by default
-        $staffRole = \App\Models\Role::where('name', 'staff')->first();
+        // Create user with cashier role by default (lowest access)
+        $defaultRole = \App\Models\Role::where('name', 'cashier')->first();
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role_id' => $staffRole->id ?? null,
+            'role_id' => $defaultRole?->id,
             'is_active' => true,
         ]);
 
@@ -153,10 +180,11 @@ class AuthController extends Controller
     {
         $request->validate(['email' => 'required|email|exists:users,email']);
 
-        // TODO: Send password reset email using Laravel's built-in reset functionality
-        // For now, we'll use a simple approach
+        $status = Password::sendResetLink($request->only('email'));
 
-        return back()->with('status', 'If an account exists with this email, a reset link will be sent.');
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with('status', __($status))
+            : back()->withErrors(['email' => __($status)]);
     }
 
     /**
@@ -165,5 +193,78 @@ class AuthController extends Controller
     public function showResetPassword($token)
     {
         return view('auth.reset-password', ['token' => $token]);
+    }
+
+    public function showMfaVerify()
+    {
+        if (! session('mfa_pending')) {
+            return redirect()->route('login');
+        }
+        return view('auth.mfa-verify');
+    }
+
+    public function verifyMfa(Request $request)
+    {
+        $request->validate(['code' => 'required|string|size:6']);
+
+        $userId = session('mfa_pending');
+        if (! $userId) {
+            return redirect()->route('login');
+        }
+
+        $user = \App\Models\User::find($userId);
+        if (! $user || ! $user->mfa_enabled || ! $user->mfa_secret) {
+            session()->forget(['mfa_pending', 'mfa_remember']);
+            return redirect()->route('login');
+        }
+
+        if (! \App\Http\Controllers\ProfileController::verifyTotpStatic($user->mfa_secret, $request->code)) {
+            return back()->withErrors(['code' => 'Invalid verification code.']);
+        }
+
+        Auth::login($user, session('mfa_remember', false));
+        session()->forget(['mfa_pending', 'mfa_remember']);
+
+        $user->update(['last_login_at' => now()]);
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('dashboard'))->with('success', 'Welcome back!');
+    }
+
+    /**
+     * Handle password reset
+     */
+    public function reset(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+
+                \App\Models\AuditLog::create([
+                    'user_id' => $user->id,
+                    'action' => 'password_reset',
+                    'model_type' => 'User',
+                    'model_id' => $user->id,
+                    'description' => 'Password reset via email',
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                ]);
+
+                Auth::login($user);
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET
+            ? redirect()->route('dashboard')->with('success', __($status))
+            : back()->withErrors(['email' => [__($status)]]);
     }
 }

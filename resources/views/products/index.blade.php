@@ -11,7 +11,11 @@
                     <p class="mt-1 text-sm text-gray-600">Manage your inventory catalogue</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('reports.inventory-csv') }}" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
+                    <a href="{{ route('products.export.excel') }}" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
+                        <i class="fas fa-file-excel mr-2 text-green-700"></i>Excel
+                    </a> class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
+                        <i class="fas fa-file-import mr-2 text-purple-600"></i>Import
+                    </a> class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
                         <i class="fas fa-file-csv mr-2 text-green-600"></i>Export CSV
                     </a>
                     <a href="{{ route('reports.inventory-pdf') }}" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
@@ -139,7 +143,7 @@
                                         <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
                                             @if($product->quantity == 0)
                                                 bg-gray-100 text-gray-800
-                                            @elseif($product->quantity <= $product->reorder_level)
+                                            @elseif($product->quantity <= $product->low_stock_threshold)
                                                 bg-red-100 text-red-800
                                             @else
                                                 bg-green-100 text-green-800

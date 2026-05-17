@@ -15,6 +15,21 @@ class NotificationController extends Controller
         return view('notifications.index', compact('notifications'));
     }
 
+    public function poll()
+    {
+        $userId = auth()->id();
+        $unreadCount = Notification::where('user_id', $userId)->whereNull('read_at')->count();
+        $latest = Notification::where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get(['id', 'title', 'message', 'type', 'created_at', 'read_at']);
+
+        return response()->json([
+            'unread_count' => $unreadCount,
+            'notifications' => $latest,
+        ]);
+    }
+
     public function markAsRead(Notification $notification)
     {
         $notification->update(['read_at' => now()]);

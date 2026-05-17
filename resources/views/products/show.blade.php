@@ -3,12 +3,10 @@
 @section('content')
 <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-4xl mx-auto">
-        <!-- Back Link -->
         <div class="mb-6">
             <a href="{{ route('products.index') }}" class="text-blue-600 hover:text-blue-900">← Back to Products</a>
         </div>
 
-        <!-- Header -->
         <div class="bg-white shadow rounded-lg p-6 mb-6">
             <div class="flex justify-between items-start">
                 <div>
@@ -19,20 +17,14 @@
                     <a href="{{ route('products.edit', $product) }}" class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700">
                         Edit
                     </a>
-                    <form action="{{ route('products.destroy', $product) }}" method="POST" class="inline" onclick="return confirm('Delete this product?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-                            Delete
-                        </button>
-                    </form>
+                    <button type="button" onclick="document.getElementById('delete-modal').style.display='flex'" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                        Delete
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Product Info Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <!-- Left Column -->
             <div class="bg-white shadow rounded-lg p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Product Details</h2>
                 <dl class="space-y-4">
@@ -63,7 +55,6 @@
                 </dl>
             </div>
 
-            <!-- Right Column -->
             <div class="bg-white shadow rounded-lg p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Pricing & Inventory</h2>
                 <dl class="space-y-4">
@@ -103,7 +94,6 @@
             </div>
         </div>
 
-        <!-- Variants Section -->
         @if($product->variants->count() > 0)
             <div class="bg-white shadow rounded-lg p-6 mb-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Product Variants</h2>
@@ -134,7 +124,6 @@
             </div>
         @endif
 
-        <!-- Stock Transactions History -->
         @if($product->stockTransactions->count() > 0)
             <div class="bg-white shadow rounded-lg p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Stock Transactions</h2>
@@ -155,7 +144,7 @@
                                     <td class="px-6 py-4 text-sm text-gray-900">{{ $transaction->created_at->format('M d, Y H:i') }}</td>
                                     <td class="px-6 py-4 text-sm">
                                         <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
-                                            {{ $transaction->type === 'in' ? 'bg-green-100 text-green-800' : ($transaction->type === 'out' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800') }}
+                                            {{ $transaction->type === 'stock_in' ? 'bg-green-100 text-green-800' : ($transaction->type === 'stock_out' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800') }}
                                         ">
                                             {{ ucfirst($transaction->type) }}
                                         </span>
@@ -176,4 +165,35 @@
         @endif
     </div>
 </div>
+
+{{-- Delete Confirmation Modal --}}
+<div id="delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:center;justify-content:center;">
+    <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-red-700"><i class="fas fa-exclamation-triangle mr-2"></i>Confirm Deletion</h3>
+            <button onclick="document.getElementById('delete-modal').style.display='none'" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+        </div>
+        <p class="text-sm text-gray-600 mb-4">This will permanently delete <strong>{{ $product->name }}</strong> ({{ $product->sku }}). This action cannot be undone.</p>
+
+        <form method="POST" action="{{ route('products.destroy', $product) }}" class="space-y-4">
+            @csrf
+            @method('DELETE')
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Enter your password to confirm</label>
+                <input type="password" name="password" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Your account password">
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="submit" class="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-sm transition">
+                    <i class="fas fa-trash mr-2"></i>Delete Product
+                </button>
+                <button type="button" onclick="document.getElementById('delete-modal').style.display='none'" class="flex-1 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg text-sm transition">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+document.getElementById('delete-modal').addEventListener('click', function(e){
+    if(e.target===this) this.style.display='none';
+});
+</script>
 @endsection
