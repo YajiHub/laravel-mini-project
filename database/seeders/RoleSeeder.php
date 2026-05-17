@@ -41,7 +41,7 @@ class RoleSeeder extends Seeder
                 'name' => 'viewer',
                 'display_name' => 'Viewer',
                 'description' => 'Read-only access to reports and dashboards',
-                'is_active' => true,
+                'is_active' => false, // Disabled — not used in this system
             ],
         ];
 

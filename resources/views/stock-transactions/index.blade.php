@@ -9,7 +9,7 @@
         <h1 class="text-2xl font-bold text-gray-900"><i class="fas fa-dolly mr-2 text-blue-600"></i>Stock Transactions</h1>
         <p class="text-sm text-gray-500 mt-1">View and record stock movements.</p>
       </div>
-      <button onclick="document.getElementById('add-modal').classList.add('show')"
+      <button onclick="document.getElementById('add-modal').style.display='flex'"
         class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-sm transition">
         <i class="fas fa-plus"></i>Add Stock Movement
       </button>
@@ -129,7 +129,7 @@
 </div>
 
 {{-- Add Stock Modal --}}
-<div class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center" id="add-modal" style="display:none">
+<div id="add-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:center;justify-content:center;">
   <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-bold text-gray-800"><i class="fas fa-boxes mr-2 text-blue-600"></i>Record Stock Movement</h3>

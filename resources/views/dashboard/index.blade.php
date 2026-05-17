@@ -267,27 +267,31 @@ new Chart(document.getElementById('salesChart').getContext('2d'), {
       <span class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600"><i class="fas fa-users text-sm"></i></span>
     </div>
     <p class="text-2xl font-extrabold text-gray-800">{{ $stats['total_users'] }}</p>
+    <p class="text-xs text-gray-400 mt-1">Registered system accounts</p>
   </div>
   <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
     <div class="flex items-center justify-between mb-2">
-      <span class="text-xs font-semibold text-gray-400 uppercase">Products</span>
-      <span class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600"><i class="fas fa-boxes text-sm"></i></span>
+      <span class="text-xs font-semibold text-gray-400 uppercase">User Roles</span>
+      <span class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600"><i class="fas fa-user-shield text-sm"></i></span>
     </div>
-    <p class="text-2xl font-extrabold text-gray-800">{{ $stats['total_products'] }}</p>
+    <p class="text-2xl font-extrabold text-gray-800">{{ $stats['total_roles'] }}</p>
+    <p class="text-xs text-gray-400 mt-1">Active role definitions</p>
   </div>
   <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
     <div class="flex items-center justify-between mb-2">
-      <span class="text-xs font-semibold text-gray-400 uppercase">Categories</span>
-      <span class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600"><i class="fas fa-tags text-sm"></i></span>
+      <span class="text-xs font-semibold text-gray-400 uppercase">Audit Events Today</span>
+      <span class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600"><i class="fas fa-clipboard-list text-sm"></i></span>
     </div>
-    <p class="text-2xl font-extrabold text-gray-800">{{ $stats['total_categories'] }}</p>
+    <p class="text-2xl font-extrabold text-gray-800">{{ $stats['audit_logs_today'] }}</p>
+    <p class="text-xs text-gray-400 mt-1">System activity logs</p>
   </div>
   <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
     <div class="flex items-center justify-between mb-2">
-      <span class="text-xs font-semibold text-gray-400 uppercase">Low Stock Items</span>
-      <span class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600"><i class="fas fa-exclamation-triangle text-sm"></i></span>
+      <span class="text-xs font-semibold text-gray-400 uppercase">System Status</span>
+      <span class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600"><i class="fas fa-check-circle text-sm"></i></span>
     </div>
-    <p class="text-2xl font-extrabold text-yellow-600">{{ $stats['low_stock_count'] }}</p>
+    <p class="text-2xl font-extrabold text-green-600">Online</p>
+    <p class="text-xs text-gray-400 mt-1">All services running</p>
   </div>
 </div>
 
@@ -295,10 +299,10 @@ new Chart(document.getElementById('salesChart').getContext('2d'), {
   <div class="lg:col-span-1 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
     <h2 class="text-base font-semibold text-gray-800 mb-4"><i class="fas fa-bolt mr-2 text-yellow-500"></i>Quick Actions</h2>
     <div class="space-y-2">
-      <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 p-3 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-medium text-sm transition"><i class="fas fa-users-cog w-5 text-center"></i>User Management</a>
-      <a href="{{ route('admin.users.create') }}" class="flex items-center gap-3 p-3 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium text-sm transition"><i class="fas fa-user-plus w-5 text-center"></i>Create New User</a>
+      <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 p-3 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium text-sm transition"><i class="fas fa-users-cog w-5 text-center"></i>User Management</a>
+      <a href="{{ route('admin.users.create') }}" class="flex items-center gap-3 p-3 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium text-sm transition"><i class="fas fa-user-plus w-5 text-center"></i>Create New User</a>
       <a href="{{ route('admin.audit-logs.index') }}" class="flex items-center gap-3 p-3 rounded-lg bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium text-sm transition"><i class="fas fa-clipboard-list w-5 text-center"></i>Audit Logs</a>
-      <a href="{{ route('pos.transactions') }}" class="flex items-center gap-3 p-3 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium text-sm transition"><i class="fas fa-receipt w-5 text-center"></i>All Transactions</a>
+      <a href="{{ route('categories.index') }}" class="flex items-center gap-3 p-3 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-medium text-sm transition"><i class="fas fa-tags w-5 text-center"></i>Manage Categories</a>
     </div>
   </div>
   <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -308,15 +312,19 @@ new Chart(document.getElementById('salesChart').getContext('2d'), {
     </div>
     @forelse($recentActivities as $log)
     <div class="px-5 py-3 border-b border-gray-50 flex items-center gap-4 hover:bg-gray-50">
-      @php $color = ['created'=>'green','updated'=>'blue','deleted'=>'red','login'=>'indigo','logout'=>'gray'][$log->action] ?? 'yellow'; @endphp
+      @php $color = ['create'=>'green','created'=>'green','update'=>'blue','updated'=>'blue','delete'=>'red','deleted'=>'red','login'=>'indigo','logout'=>'gray'][$log->action] ?? 'yellow'; @endphp
       <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-{{ $color }}-100 text-{{ $color }}-800 shrink-0">{{ ucfirst($log->action) }}</span>
       <div class="flex-1 min-w-0">
-        <p class="text-sm text-gray-700 truncate">{{ $log->description }}</p>
+        <p class="text-sm text-gray-700 truncate">{{ $log->description ?? ($log->action . ' on ' . class_basename($log->model_type ?? 'System')) }}</p>
         <p class="text-xs text-gray-400">{{ $log->user?->name ?? 'System' }} &bull; {{ $log->created_at->diffForHumans() }}</p>
       </div>
     </div>
     @empty
-    <div class="px-5 py-8 text-center text-gray-400 text-sm">No activity yet</div>
+    <div class="px-5 py-10 text-center">
+      <i class="fas fa-clipboard-list text-3xl text-gray-300 mb-3"></i>
+      <p class="text-sm font-medium text-gray-400">No activity logged yet</p>
+      <p class="text-xs text-gray-400 mt-1">Activity is recorded as users interact with the system</p>
+    </div>
     @endforelse
   </div>
 </div>

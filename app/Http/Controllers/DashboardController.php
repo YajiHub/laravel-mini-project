@@ -25,6 +25,7 @@ class DashboardController extends Controller
             'total_suppliers'    => Supplier::active()->count(),
             'out_of_stock'       => Product::active()->where('quantity', 0)->count(),
             'total_users'        => User::where('is_active', true)->count(),
+            'total_roles'        => \App\Models\Role::where('is_active', true)->count(),
             'total_sales_today'  => PosTransaction::where('status', 'completed')
                                         ->whereDate('transaction_date', today())
                                         ->sum('total'),
@@ -35,6 +36,7 @@ class DashboardController extends Controller
                                         ->whereMonth('transaction_date', now()->month)
                                         ->whereYear('transaction_date', now()->year)
                                         ->sum('total'),
+            'audit_logs_today'   => AuditLog::whereDate('created_at', today())->count(),
         ];
 
         // Role-specific data
@@ -59,7 +61,7 @@ class DashboardController extends Controller
                 ->get();
         }
 
-        if ($role === 'store_manager' || $role === 'admin') {
+        if ($role === 'store_manager') {
             $topProducts = \App\Models\PosTransactionItem::select('product_name')
                 ->selectRaw('SUM(quantity) as total_sold')
                 ->selectRaw('SUM(subtotal) as revenue')
