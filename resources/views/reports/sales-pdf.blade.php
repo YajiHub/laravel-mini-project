@@ -25,7 +25,7 @@
 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
   <div>
     <h1>Sales Summary Report</h1>
-    <p class="subtitle">QueenBuilders Hardware | Period: {{ $from }} — {{ $to }}</p>
+    <p class="subtitle">QueenBuilders Hardware | Period: {{ $from && $to ? "$from — $to" : 'All Time' }}</p>
   </div>
   <div>
     <div class="badge">{{ $transactions->count() }} Transactions</div>

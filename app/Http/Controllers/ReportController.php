@@ -122,14 +122,29 @@ class ReportController extends Controller
      */
     public function salesSummaryPdf(Request $request)
     {
-        $from = $request->from_date ?? now()->startOfMonth()->toDateString();
-        $to   = $request->to_date   ?? now()->toDateString();
+        $hasDateFilter = $request->filled('from_date') || $request->filled('to_date');
+        $from = $request->from_date ?? ($hasDateFilter ? null : null);
+        $to   = $request->to_date   ?? ($hasDateFilter ? null : null);
 
-        $transactions = PosTransaction::with('user')
-            ->where('status', 'completed')
-            ->whereBetween('transaction_date', [$from, $to])
-            ->orderBy('transaction_date')
-            ->get();
+        $query = PosTransaction::with('user')
+            ->orderBy('transaction_date');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        } else {
+            $query->whereIn('status', ['completed', 'voided']);
+        }
+
+        if ($hasDateFilter) {
+            if ($request->filled('from_date')) {
+                $query->whereDate('transaction_date', '>=', $request->from_date);
+            }
+            if ($request->filled('to_date')) {
+                $query->whereDate('transaction_date', '<=', $request->to_date);
+            }
+        }
+
+        $transactions = $query->get();
 
         $totalRevenue  = $transactions->sum('total');
         $totalTax      = $transactions->sum('tax_amount');
@@ -145,6 +160,6 @@ class ReportController extends Controller
             'generated_at'  => now()->format('F d, Y h:i A'),
         ])->setPaper('a4', 'landscape');
 
-        return $pdf->download('sales-report-' . $from . '-to-' . $to . '.pdf');
+        return $pdf->download('sales-report-' . date('Y-m-d') . '.pdf');
     }
 }
