@@ -8,6 +8,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\StockTransactionController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\StoreSettingController;
@@ -133,6 +134,13 @@ Route::middleware('auth', 'role:admin')->prefix('admin')->name('admin.')->group(
     // Audit Logs
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show'])->name('audit-logs.show');
+
+    // System Utilities
+    Route::get('/utilities', [SystemController::class, 'index'])->name('utilities');
+    Route::get('/sql-dump', [SystemController::class, 'sqlDump'])->name('sql-dump');
+    Route::get('/schema-dump', [SystemController::class, 'schemaDump'])->name('schema-dump');
+    Route::get('/user-manual', [SystemController::class, 'userManualPdf'])->name('user-manual');
+    Route::get('/tech-docs', [SystemController::class, 'techDocsPdf'])->name('tech-docs');
 });
 
 // Profile Routes

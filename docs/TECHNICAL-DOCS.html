@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>QueenBuilders IMS — Technical Documentation</title>
+<style>
+  @page { margin: 20mm; size: A4; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 11pt; line-height: 1.6; color: #1a1a2e; max-width: 800px; margin: 0 auto; padding: 20px; }
+  h1 { font-size: 24pt; color: #1e3a5f; border-bottom: 3px solid #1d4ed8; padding-bottom: 10px; }
+  h2 { font-size: 16pt; color: #1e3a5f; margin-top: 30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
+  h3 { font-size: 13pt; color: #334155; margin-top: 20px; }
+  pre { background: #1e293b; color: #e2e8f0; padding: 14px 18px; border-radius: 8px; overflow-x: auto; font-size: 9pt; line-height: 1.5; }
+  code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 10pt; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+  th { background: #1e3a5f; color: #fff; padding: 8px 10px; text-align: left; font-size: 10pt; }
+  td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; font-size: 10pt; }
+  .footer { text-align: center; font-size: 9pt; color: #94a3b8; margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>QueenBuilders IMS<br><span style="font-size:14pt;color:#64748b">Technical Documentation</span></h1>
+<p><strong>BSIT 3C | ITSD 82 | Mini Project</strong></p>
+
+<h2>1. Technology Stack</h2>
+<table>
+  <tr><th>Layer</th><th>Technology</th></tr>
+  <tr><td>Backend Framework</td><td>Laravel 13.7 (PHP 8.3+)</td></tr>
+  <tr><td>Frontend</td><td>Blade Templates + Tailwind CSS 3 + Alpine.js 3 + Vite 8</td></tr>
+  <tr><td>Database</td><td>PostgreSQL 18</td></tr>
+  <tr><td>Authentication</td><td>Laravel Breeze (customized) + Custom TOTP MFA</td></tr>
+  <tr><td>PDF Generation</td><td>barryvdh/laravel-dompdf 3.1</td></tr>
+  <tr><td>Excel/CSV</td><td>maatwebsite/excel 3.1</td></tr>
+  <tr><td>Backup</td><td>spatie/laravel-backup 10.2</td></tr>
+  <tr><td>Charts</td><td>Chart.js (CDN)</td></tr>
+  <tr><td>Icons</td><td>Font Awesome 6 (CDN)</td></tr>
+</table>
+
+<h2>2. System Architecture</h2>
+<p>The system follows the standard Laravel MVC (Model-View-Controller) architecture with middleware-based role access control running on PostgreSQL.</p>
+<ul>
+  <li><strong>Browser Layer:</strong> Blade templates with Tailwind CSS and Alpine.js</li>
+  <li><strong>Route Layer:</strong> web.php — 150+ routes with role-based middleware</li>
+  <li><strong>Middleware Layer:</strong> auth, security.headers, throttle:100,1, role:xyz</li>
+  <li><strong>Controller Layer:</strong> 14 controllers handling business logic</li>
+  <li><strong>Model Layer:</strong> 16 Eloquent models with PostgreSQL</li>
+  <li><strong>Database Layer:</strong> PostgreSQL with 20 tables</li>
+</ul>
+
+<h2>3. Directory Structure</h2>
+<ul>
+  <li><strong>app/Console/Commands/</strong> — CheckLowStockCommand (daily low-stock notification)</li>
+  <li><strong>app/Exports/</strong> — ProductsExport (Excel export)</li>
+  <li><strong>app/Imports/</strong> — ProductsImport (CSV/Excel import with validation)</li>
+  <li><strong>app/Http/Controllers/</strong> — 14 controllers (Auth, Product, POS, Dashboard, etc.)</li>
+  <li><strong>app/Http/Middleware/</strong> — AdminMiddleware, RoleMiddleware, SecurityHeaders</li>
+  <li><strong>app/Models/</strong> — 16 Eloquent models</li>
+  <li><strong>app/Policies/</strong> — ProductPolicy (authorization)</li>
+  <li><strong>config/backup.php</strong> — Backup configuration (spatie/laravel-backup)</li>
+  <li><strong>database/migrations/</strong> — 21 migration files</li>
+  <li><strong>database/seeders/</strong> — 5 seeders (roles, permissions, users, products, categories)</li>
+  <li><strong>database/schema/</strong> — SQL schema dump</li>
+  <li><strong>routes/web.php</strong> — All HTTP routes (150+)</li>
+  <li><strong>routes/console.php</strong> — Scheduled commands</li>
+  <li><strong>resources/views/</strong> — Blade templates (auth, admin, products, pos, dashboard, reports, etc.)</li>
+  <li><strong>docs/</strong> — User manual, technical docs, ER diagram guide, deployment guide</li>
+</ul>
+
+<h2>4. Database Schema</h2>
+<p>20 tables across 21 migrations. Full SQL dump: <code>database/schema/schema-dump.sql</code></p>
+<p>ER Diagram guide: <code>docs/ER-DIAGRAM-GUIDE.md</code></p>
+
+<h2>5. Authentication Flow</h2>
+<pre>
+1. User submits email + password
+2. Brute-force check: LoginAttempt model (5 attempts/15 min lockout)
+3. CAPTCHA trigger after 3 failed attempts (math challenge)
+4. Auth::attempt() with bcrypt verification (12 rounds)
+5. If MFA enabled → redirect to /mfa-verify → TOTP check
+6. Session regeneration + last_login_at update
+7. AuditLog entry created (login event with IP/UA)
+8. Redirect to dashboard with role-specific data
+</pre>
+
+<h2>6. Security Features</h2>
+<table>
+  <tr><th>Feature</th><th>Implementation</th></tr>
+  <tr><td>Password Hashing</td><td>bcrypt with BCRYPT_ROUNDS=12</td></tr>
+  <tr><td>Password Policy</td><td>Min 8 chars, mixed case, numbers (via Password::min(8)->mixedCase()->numbers())</td></tr>
+  <tr><td>Rate Limiting</td><td>throttle:100,1 on all authenticated routes</td></tr>
+  <tr><td>CSRF Protection</td><td>Laravel CSRF tokens on all forms + AJAX headers</td></tr>
+  <tr><td>XSS Protection</td><td>Blade auto-escaping ({{ }}) + CSP headers</td></tr>
+  <tr><td>SQL Injection</td><td>Eloquent ORM parameterized queries</td></tr>
+  <tr><td>Security Headers</td><td>X-Frame-Options, X-Content-Type-Options, Referrer-Policy, CSP, X-XSS-Protection</td></tr>
+  <tr><td>Session Security</td><td>Database driver, http_only=true, same_site=lax</td></tr>
+  <tr><td>Account Lockout</td><td>5 failed attempts → 15-minute lockout</td></tr>
+  <tr><td>MFA</td><td>HMAC-SHA1 TOTP (RFC 6238 compatible)</td></tr>
+</table>
+
+<h2>7. API Routes</h2>
+<table>
+  <tr><th>Method</th><th>URL</th><th>Purpose</th><th>Auth</th></tr>
+  <tr><td>GET</td><td>/notifications/poll</td><td>Unread count + latest 5</td><td>Auth</td></tr>
+  <tr><td>POST</td><td>/pos/search</td><td>Product search (AJAX)</td><td>Cashier/Admin</td></tr>
+  <tr><td>POST</td><td>/pos/lookup-sku</td><td>Barcode/SKU lookup</td><td>Cashier/Admin</td></tr>
+  <tr><td>POST</td><td>/pos/add-to-cart</td><td>Add item to cart</td><td>Cashier/Admin</td></tr>
+  <tr><td>POST</td><td>/pos/checkout</td><td>Complete sale</td><td>Cashier/Admin</td></tr>
+  <tr><td>GET</td><td>/pos/cart</td><td>Get cart contents</td><td>Cashier/Admin</td></tr>
+  <tr><td>POST</td><td>/pos/{tx}/void</td><td>Void transaction (JSON)</td><td>Manager/Admin</td></tr>
+</table>
+
+<h2>8. Scheduled Tasks</h2>
+<table>
+  <tr><th>Command</th><th>Schedule</th><th>Purpose</th></tr>
+  <tr><td>inventory:check-low-stock</td><td>Daily at 8:00 AM</td><td>Check low stock, notify admins &amp; managers</td></tr>
+  <tr><td>backup:run --only-db</td><td>Weekly Sundays 2:00 AM</td><td>Database backup</td></tr>
+  <tr><td>backup:run --only-files</td><td>Weekly Sundays 2:30 AM</td><td>File uploads backup</td></tr>
+  <tr><td>backup:clean</td><td>Daily at 1:00 AM</td><td>Remove backups older than 30 days</td></tr>
+</table>
+
+<h2>9. Key Design Patterns</h2>
+<ul>
+  <li><strong>MVC Architecture:</strong> Models → Controllers → Blade Views</li>
+  <li><strong>Role-Based Access Control:</strong> RoleMiddleware checks role->name against allowed list</li>
+  <li><strong>Repository Pattern (via Eloquent):</strong> Models with scopes for reusable query logic</li>
+  <li><strong>Service Layer (POS):</strong> Session-based cart management in PosController</li>
+  <li><strong>Observer Pattern:</strong> Eloquent events for audit logging</li>
+  <li><strong>Strategy Pattern:</strong> Multiple payment methods in POS checkout</li>
+  <li><strong>Soft Deletes:</strong> Products use Laravel's SoftDeletes trait</li>
+</ul>
+
+<div class="footer">
+  QueenBuilders Hardware IMS — Technical Documentation<br>
+  Prepared for ITSD 82 Mini Project | BSIT 3C | Montecillo &amp; Salapang
+</div>
+
+</body>
+</html>

@@ -57,6 +57,9 @@
                         <a href="{{ route('admin.users.index') }}" class="inline-flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.users.*', 'admin.audit-logs.*') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-gray-900' }}">
                             <i class="fas fa-users-cog mr-2"></i>Admin
                         </a>
+                        <a href="{{ route('admin.utilities') }}" class="inline-flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.utilities') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-gray-900' }}">
+                            <i class="fas fa-tools mr-2"></i>Utilities
+                        </a>
                     @endif
                 </div>
             </div>

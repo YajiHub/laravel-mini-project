@@ -1,58 +1,68 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# QueenBuilders IMS — Inventory Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A comprehensive web-based inventory management and point-of-sale system for **QueenBuilders Hardware & Construction Supplies**, developed as part of the ITSD 82 Mini Project (BSIT 3C).
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Role-Based Access Control** — 4 user roles (Admin, Inventory Manager, Store Manager, Cashier) with granular permissions
+- **Point of Sale (POS)** — AJAX-driven cart, variant support, multiple payment methods, receipt generation
+- **Inventory Management** — Product CRUD, categories, suppliers, product variants, stock transactions
+- **Real-Time Notifications** — Low stock alerts, in-app notification bell with live polling
+- **Dashboard Analytics** — Chart.js visualizations, role-specific statistics, recent activity feeds
+- **Reporting & Exports** — Inventory and sales reports in PDF, CSV, and Excel formats
+- **Security** — bcrypt password hashing, CSRF protection, CSP headers, rate limiting, XSS prevention
+- **Two-Factor Authentication** — TOTP-based MFA with QR code setup
+- **Audit Logging** — Complete audit trail of all system activity (logins, CRUD, backups)
+- **Automated Backup** — Weekly database + file backups with 30-day retention
+- **Data Import** — Bulk product import via CSV/Excel with validation
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Tech Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Layer | Technology |
+|-------|-----------|
+| Backend | Laravel 13.7 (PHP 8.3+) |
+| Frontend | Blade + Tailwind CSS 3 + Alpine.js 3 |
+| Database | PostgreSQL 18 |
+| PDF | barryvdh/laravel-dompdf |
+| Excel | maatwebsite/excel |
+| Backup | spatie/laravel-backup |
+| Charts | Chart.js |
 
-## Learning Laravel
+## Test Accounts
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+| Role | Email | Password |
+|------|-------|----------|
+| Administrator | admin@queenbuilders.com | password123 |
+| Cashier | cashier@queenbuilders.com | password123 |
+| Inventory Manager | inventory@queenbuilders.com | password123 |
+| Store Manager | manager@queenbuilders.com | password123 |
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Quick Start (Local)
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/your-username/QueenBuilders-IMS.git
+cd QueenBuilders-IMS
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed
+php artisan storage:link
+npm install && npm run build
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Documentation
 
-## Contributing
+- 📖 **User Manual:** `docs/USER-MANUAL.html`
+- 🔧 **Technical Docs:** `docs/TECHNICAL-DOCS.html`
+- 🗄️ **SQL Schema:** `database/schema/schema-dump.sql`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Project Team
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- Developer 1 — Montecillo
+- Developer 2 — Salapang
+- BSIT 3C | ITSD 82 | Web Software Tools
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is submitted as an academic requirement for ITSD 82.
