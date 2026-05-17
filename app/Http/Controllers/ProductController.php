@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Supplier;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -69,26 +70,31 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'sku' => 'required|string|unique:products,sku|max:100',
-            'category_id' => 'required|exists:categories,id',
-            'supplier_id' => 'required|exists:suppliers,id',
-            'quantity' => 'required|integer|min:0',
-            'price' => 'required|numeric|min:0',
-            'cost' => 'required|numeric|min:0',
+            'name'                => 'required|string|max:255',
+            'description'         => 'nullable|string',
+            'sku'                 => 'required|string|unique:products,sku|max:100',
+            'category_id'         => 'required|exists:categories,id',
+            'supplier_id'         => 'required|exists:suppliers,id',
+            'quantity'            => 'required|integer|min:0',
+            'price'               => 'required|numeric|min:0',
+            'cost'                => 'required|numeric|min:0',
             'low_stock_threshold' => 'required|integer|min:0',
-            'is_active' => 'boolean',
+            'unit'                => 'nullable|string|max:50',
+            'image'               => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'is_active'           => 'boolean',
         ]);
+
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('products', 'public');
+        }
 
         $product = Product::create($validated);
 
-        // Log the action
         AuditLog::create([
-            'action' => 'create',
+            'action'     => 'create',
             'model_type' => Product::class,
-            'model_id' => $product->id,
-            'user_id' => auth()->id(),
+            'model_id'   => $product->id,
+            'user_id'    => auth()->id(),
             'old_values' => null,
             'new_values' => $product->toJson(),
         ]);
@@ -123,27 +129,41 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'sku' => 'required|string|unique:products,sku,' . $product->id . '|max:100',
-            'category_id' => 'required|exists:categories,id',
-            'supplier_id' => 'required|exists:suppliers,id',
-            'quantity' => 'required|integer|min:0',
-            'price' => 'required|numeric|min:0',
-            'cost' => 'required|numeric|min:0',
+            'name'                => 'required|string|max:255',
+            'description'         => 'nullable|string',
+            'sku'                 => 'required|string|unique:products,sku,' . $product->id . '|max:100',
+            'category_id'         => 'required|exists:categories,id',
+            'supplier_id'         => 'required|exists:suppliers,id',
+            'quantity'            => 'required|integer|min:0',
+            'price'               => 'required|numeric|min:0',
+            'cost'                => 'required|numeric|min:0',
             'low_stock_threshold' => 'required|integer|min:0',
-            'is_active' => 'boolean',
+            'unit'                => 'nullable|string|max:50',
+            'image'               => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'remove_image'        => 'nullable|boolean',
+            'is_active'           => 'boolean',
         ]);
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            // Delete old image
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $validated['image'] = $request->file('image')->store('products', 'public');
+        } elseif ($request->boolean('remove_image') && $product->image) {
+            Storage::disk('public')->delete($product->image);
+            $validated['image'] = null;
+        }
 
         $oldValues = $product->toArray();
         $product->update($validated);
 
-        // Log the action
         AuditLog::create([
-            'action' => 'update',
+            'action'     => 'update',
             'model_type' => Product::class,
-            'model_id' => $product->id,
-            'user_id' => auth()->id(),
+            'model_id'   => $product->id,
+            'user_id'    => auth()->id(),
             'old_values' => json_encode($oldValues),
             'new_values' => $product->toJson(),
         ]);
@@ -157,14 +177,19 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $oldValues = $product->toArray();
+
+        // Delete product image from storage
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+
         $product->delete();
 
-        // Log the action
         AuditLog::create([
-            'action' => 'delete',
+            'action'     => 'delete',
             'model_type' => Product::class,
-            'model_id' => $product->id,
-            'user_id' => auth()->id(),
+            'model_id'   => $product->id,
+            'user_id'    => auth()->id(),
             'old_values' => json_encode($oldValues),
             'new_values' => null,
         ]);

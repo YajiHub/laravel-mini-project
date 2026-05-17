@@ -16,10 +16,13 @@
                         <i class="fas fa-chart-line mr-2"></i>Dashboard
                     </a>
                     
-                    {{-- Cashier: POS Only --}}
+                    {{-- Cashier: POS + My Sales --}}
                     @if(auth()->user()->role->name === 'cashier')
-                        <a href="{{ route('pos.index') }}" class="inline-flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('pos.*') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-gray-900' }}">
+                        <a href="{{ route('pos.index') }}" class="inline-flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('pos.index') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-gray-900' }}">
                             <i class="fas fa-cash-register mr-2"></i>Point of Sale
+                        </a>
+                        <a href="{{ route('pos.my-sales') }}" class="inline-flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('pos.my-sales') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-gray-900' }}">
+                            <i class="fas fa-history mr-2"></i>My Sales
                         </a>
                     
                     {{-- Inventory Manager: Products, Categories, Suppliers, Stock --}}
@@ -56,6 +59,19 @@
                         </a>
                     @endif
                 </div>
+            </div>
+
+            <!-- Notification Bell -->
+            <div class="hidden sm:flex sm:items-center sm:ms-4">
+                @php
+                    $unreadCount = \App\Models\Notification::where('user_id', auth()->id())->whereNull('read_at')->count();
+                @endphp
+                <a href="{{ route('notifications.index') }}" class="relative p-2 text-gray-500 hover:text-blue-600 transition">
+                    <i class="fas fa-bell text-lg"></i>
+                    @if($unreadCount > 0)
+                    <span class="absolute -top-0.5 -right-0.5 flex items-center justify-center w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full">{{ $unreadCount > 9 ? '9+' : $unreadCount }}</span>
+                    @endif
+                </a>
             </div>
 
             <!-- Settings Dropdown -->

@@ -8,11 +8,19 @@
         <h1 class="text-2xl font-bold text-gray-900"><i class="fas fa-receipt mr-2 text-blue-600"></i>Transaction History</h1>
         <p class="text-sm text-gray-500 mt-1">All POS transactions</p>
       </div>
-      @if(auth()->user()->role->name === 'admin' || auth()->user()->role->name === 'store_manager')
-      <a href="{{ route('settings.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition">
-        <i class="fas fa-cog"></i>Store Settings
-      </a>
-      @endif
+      <div class="flex items-center gap-2">
+        <a href="{{ route('reports.sales-csv', request()->query()) }}" class="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition">
+          <i class="fas fa-file-csv text-green-600"></i>Export CSV
+        </a>
+        <a href="{{ route('reports.sales-pdf', request()->query()) }}" class="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition">
+          <i class="fas fa-file-pdf text-red-600"></i>Export PDF
+        </a>
+        @if(auth()->user()->role->name === 'admin' || auth()->user()->role->name === 'store_manager')
+        <a href="{{ route('settings.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition">
+          <i class="fas fa-cog"></i>Store Settings
+        </a>
+        @endif
+      </div>
     </div>
 
     {{-- Filters --}}

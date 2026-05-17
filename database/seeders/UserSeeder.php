@@ -16,7 +16,6 @@ class UserSeeder extends Seeder
         $cashierRole = \App\Models\Role::where('name', 'cashier')->first();
         $inventoryManagerRole = \App\Models\Role::where('name', 'inventory_manager')->first();
         $storeManagerRole = \App\Models\Role::where('name', 'store_manager')->first();
-        $viewerRole = \App\Models\Role::where('name', 'viewer')->first();
 
         $users = [
             [
@@ -50,14 +49,6 @@ class UserSeeder extends Seeder
                 'phone' => '09123456792',
                 'is_active' => true,
                 'role_id' => $storeManagerRole->id ?? 4,
-            ],
-            [
-                'name' => 'Viewer User',
-                'email' => 'viewer@queensbuilders.com',
-                'password' => bcrypt('password123'),
-                'phone' => '09123456793',
-                'is_active' => true,
-                'role_id' => $viewerRole->id ?? 5,
             ],
         ];
 

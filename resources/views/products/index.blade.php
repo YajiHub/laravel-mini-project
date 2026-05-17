@@ -7,12 +7,20 @@
         <div class="mb-8">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Products</h1>
-                    <p class="mt-1 text-sm text-gray-600">Manage your inventory</p>
+                    <h1 class="text-3xl font-bold text-gray-900"><i class="fas fa-boxes mr-2 text-blue-600"></i>Products</h1>
+                    <p class="mt-1 text-sm text-gray-600">Manage your inventory catalogue</p>
                 </div>
-                <a href="{{ route('products.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-                    + Add Product
-                </a>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('reports.inventory-csv') }}" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
+                        <i class="fas fa-file-csv mr-2 text-green-600"></i>Export CSV
+                    </a>
+                    <a href="{{ route('reports.inventory-pdf') }}" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
+                        <i class="fas fa-file-pdf mr-2 text-red-600"></i>Export PDF
+                    </a>
+                    <a href="{{ route('products.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                        <i class="fas fa-plus mr-2"></i>Add Product
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -98,6 +106,7 @@
                     <table class="w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-14">Image</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
@@ -111,6 +120,15 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($products as $product)
                                 <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3">
+                                        @if($product->image)
+                                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-10 h-10 rounded-lg object-cover border border-gray-200">
+                                        @else
+                                            <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
+                                                <i class="fas fa-box text-sm"></i>
+                                            </div>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-medium text-gray-900">{{ $product->name }}</div>
                                     </td>
@@ -119,10 +137,10 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->supplier->name }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
-                                            @if($product->quantity <= $product->low_stock_threshold)
-                                                bg-red-100 text-red-800
-                                            @elseif($product->quantity == 0)
+                                            @if($product->quantity == 0)
                                                 bg-gray-100 text-gray-800
+                                            @elseif($product->quantity <= $product->reorder_level)
+                                                bg-red-100 text-red-800
                                             @else
                                                 bg-green-100 text-green-800
                                             @endif

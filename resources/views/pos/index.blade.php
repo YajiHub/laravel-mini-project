@@ -217,8 +217,11 @@ function renderProducts(prods) {
     const stockBadge = oos
       ? '<span style="color:#ef4444">Out of stock</span>'
       : 'Stock: ' + p.quantity + (p.unit ? ' ' + p.unit : '');
+    const imgHtml = p.image
+      ? '<img src="' + p.image + '" alt="' + p.name + '" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:6px;display:block">'
+      : '<div class="prod-icon"><i class="fas fa-box-open text-blue-400"></i></div>';
     return '<div class="prod-card' + (oos ? ' out-of-stock' : '') + '" data-pid="' + p.id + '">' +
-      '<div class="prod-icon"><i class="fas fa-box-open text-blue-400"></i></div>' +
+      imgHtml +
       '<div class="prod-name">' + p.name + '</div>' +
       '<div class="prod-price">' + CURRENCY + p.price.toFixed(2) + '</div>' +
       '<div class="prod-stock">' + stockBadge + '</div>' +
@@ -374,7 +377,9 @@ function updateTotals(sub, tax, total) {
   const taxRow = document.getElementById('disp-tax');
   if (taxRow) taxRow.textContent = CURRENCY+parseFloat(tax).toFixed(2);
   document.getElementById('disp-total').textContent = CURRENCY+parseFloat(total).toFixed(2);
-  document.getElementById('charge-amt').textContent = CURRENCY+parseFloat(total).toFixed(2);
+  // charge-amt lives inside the button and may be null when button is in Processing state
+  const chargeAmt = document.getElementById('charge-amt');
+  if (chargeAmt) chargeAmt.textContent = CURRENCY+parseFloat(total).toFixed(2);
   calcChange();
 }
 
@@ -397,49 +402,79 @@ async function processCheckout() {
   const totalStr = document.getElementById('disp-total').textContent.replace(CURRENCY, '').replace(/,/g, '');
   const total    = parseFloat(totalStr) || 0;
   const tendered = parseFloat(document.getElementById('cash-tendered').value) || 0;
-  if (tendered < total) { showToast('Cash tendered is less than the total amount', 'error'); return; }
+  if (tendered < total) { showToast('Cash tendered is less than total', 'error'); return; }
 
   const btn = document.getElementById('charge-btn');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
 
-  const dv = parseFloat(document.getElementById('discount-val').value) || 0;
-  const body = {
-    payment_method: 'cash',
-    customer_name:  document.getElementById('customer-name').value,
-    discount:       dv,
-    discount_type:  document.getElementById('discount-type').value,
-    cash_tendered:  tendered,
-    notes:          null,
-  };
-  const r = await apiFetch(CHECKOUT_URL, body, 'POST');
-  if (r.success) {
-    showToast('Sale complete! ' + r.transaction_number, 'success');
-    cartData = {cart:[],subtotal:0,tax_rate:cartData.tax_rate||0,tax_amount:0,total:0,currency:CURRENCY};
-    renderCart();
-    document.getElementById('customer-name').value = '';
-    document.getElementById('discount-val').value  = '0';
-    document.getElementById('cash-tendered').value = '';
-    calcChange();
-    // Navigate to receipt
-    if (r.receipt_url) {
-      window.location.replace(r.receipt_url);
+  let navigating = false; // track if we are navigating away (so finally doesn't re-enable)
+
+  try {
+    const dv = parseFloat(document.getElementById('discount-val').value) || 0;
+    const body = {
+      payment_method: 'cash',
+      customer_name:  document.getElementById('customer-name').value,
+      discount:       dv,
+      discount_type:  document.getElementById('discount-type').value,
+      cash_tendered:  tendered,
+      notes:          null,
+    };
+
+    const r = await apiFetch(CHECKOUT_URL, body, 'POST');
+
+    if (r && r.success) {
+      // Clear cart UI immediately
+      cartData = {cart:[],subtotal:0,tax_rate:cartData.tax_rate||0,tax_amount:0,total:0,currency:CURRENCY};
+      renderCart();
+      document.getElementById('customer-name').value = '';
+      document.getElementById('discount-val').value  = '0';
+      document.getElementById('cash-tendered').value = '';
+      calcChange();
+
+      showToast('Sale complete! ' + r.transaction_number, 'success');
+      btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Opening Receipt...';
+
+      if (r.receipt_url) {
+        navigating = true;
+        setTimeout(() => { window.location.href = r.receipt_url; }, 800);
+      }
+    } else {
+      showToast((r && r.message) || 'Checkout failed. Please try again.', 'error');
     }
-  } else {
-    showToast(r.message || 'Checkout failed', 'error');
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Charge <span id="charge-amt">' + document.getElementById('disp-total').textContent + '</span>';
+  } catch (err) {
+    console.error('processCheckout error:', err);
+    showToast('An unexpected error occurred. Please try again.', 'error');
+  } finally {
+    // Always re-enable the button unless we are navigating away
+    if (!navigating) {
+      btn.disabled = false;
+      const dispTotal = document.getElementById('disp-total');
+      btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Charge <span id="charge-amt">' +
+        (dispTotal ? dispTotal.textContent : CURRENCY + '0.00') + '</span>';
+    }
   }
 }
 
 // ---- Helpers ----
 async function apiFetch(url, data={}, method='POST') {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30000); // 30s timeout
   try {
-    const opts = { method, headers: {'X-CSRF-TOKEN':CSRF,'Content-Type':'application/json','Accept':'application/json'} };
+    const opts = {
+      method,
+      signal: controller.signal,
+      headers: {'X-CSRF-TOKEN':CSRF,'Content-Type':'application/json','Accept':'application/json'}
+    };
     if (method!=='GET') opts.body = JSON.stringify(data);
     const res = await fetch(url, opts);
+    clearTimeout(timer);
     return await res.json();
-  } catch(e) { return {success:false,message:'Network error'}; }
+  } catch(e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') return {success:false, message:'Request timed out. Please try again.'};
+    return {success:false, message:'Network error'};
+  }
 }
 
 function showToast(msg, type='success') {
@@ -453,5 +488,18 @@ function showToast(msg, type='success') {
 document.getElementById('variant-modal').addEventListener('click', function(e){if(e.target===this)closeModal();});
 
 init();
+
+// Fix: when user navigates back from the receipt page, the browser restores
+// this page from the back-forward cache (bfcache). The charge button can be
+// frozen in "Processing..." or "Opening Receipt..." state. Reset it.
+window.addEventListener('pageshow', function(event) {
+  if (event.persisted) {
+    // Page was restored from bfcache — reinitialise completely
+    const btn = document.getElementById('charge-btn');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Charge <span id="charge-amt">' + CURRENCY + '0.00</span>';
+    init(); // reload cart + products fresh from server
+  }
+});
 </script>
 @endsection

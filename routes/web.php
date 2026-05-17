@@ -12,6 +12,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\StoreSettingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 // Root redirect
@@ -35,6 +36,7 @@ Route::post('/register', function () {
 })->name('register.store');
 
 Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
+Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
 
 // ============================================================
 // AUTHENTICATED ROUTES
@@ -65,7 +67,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/stock-transactions', [StockTransactionController::class, 'store'])->name('stock-transactions.store');
     });
 
-    // POS System - Cashier & Admin only
+    // POS System - Cashier & Admin only (terminal operations)
     Route::middleware('role:cashier|admin')->prefix('pos')->name('pos.')->group(function () {
         Route::get('/', [PosController::class, 'index'])->name('index');
         Route::get('/cart', [PosController::class, 'getCart'])->name('cart');
@@ -76,6 +78,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/update-quantity', [PosController::class, 'updateQuantity'])->name('update-quantity');
         Route::post('/clear-cart', [PosController::class, 'clearCart'])->name('clear-cart');
         Route::post('/checkout', [PosController::class, 'checkout'])->name('checkout');
+        // Cashier's own sales history
+        Route::get('/my-sales', [PosController::class, 'mySales'])->name('my-sales');
+    });
+
+    // Receipt view - any authenticated user (cashier sees after sale, manager views from history)
+    Route::prefix('pos')->name('pos.')->group(function () {
         Route::get('/receipt/{transaction}', [PosController::class, 'receipt'])->name('receipt');
         Route::get('/receipt/{transaction}/pdf', [PosController::class, 'receiptPdf'])->name('receipt-pdf');
     });
@@ -90,6 +98,11 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:store_manager|admin')->group(function () {
         Route::get('/settings', [StoreSettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [StoreSettingController::class, 'update'])->name('settings.update');
+        // Reports & Exports
+        Route::get('/reports/inventory-pdf', [ReportController::class, 'inventoryPdf'])->name('reports.inventory-pdf');
+        Route::get('/reports/inventory-csv', [ReportController::class, 'inventoryCsv'])->name('reports.inventory-csv');
+        Route::get('/reports/sales-csv', [ReportController::class, 'salesCsv'])->name('reports.sales-csv');
+        Route::get('/reports/sales-pdf', [ReportController::class, 'salesSummaryPdf'])->name('reports.sales-pdf');
     });
 });
 
@@ -111,13 +124,8 @@ Route::middleware('auth', 'role:admin')->prefix('admin')->name('admin.')->group(
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    // Email verification stub (used by profile view)
+    Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
     Route::post('/email/verification-notification', function () {
         return back()->with('status', 'verification-link-sent');
     })->middleware('throttle:6,1')->name('verification.send');
-    // Password update stub
-    Route::put('/password', function () {
-        return back()->with('status', 'password-updated');
-    })->name('password.update');
 });

@@ -41,7 +41,31 @@ class AuditLogController extends Controller
             $query->whereDate('created_at', '<=', $toDate);
         }
 
-        $logs = $query->latest('created_at')->paginate(20);
+        $logs = $query->latest('created_at')->paginate(20)->withQueryString();
+
+        // CSV Export
+        if ($request->input('export') === 'csv') {
+            $allLogs = $query->latest('created_at')->get();
+            $headers = ['Content-Type' => 'text/csv', 'Content-Disposition' => 'attachment; filename="audit-logs-' . now()->format('Y-m-d') . '.csv"'];
+            $callback = function () use ($allLogs) {
+                $f = fopen('php://output', 'w');
+                fputcsv($f, ['ID', 'Timestamp', 'User', 'Action', 'Module', 'Record ID', 'Description', 'IP Address']);
+                foreach ($allLogs as $log) {
+                    fputcsv($f, [
+                        $log->id,
+                        $log->created_at->format('Y-m-d H:i:s'),
+                        $log->user?->name ?? 'System',
+                        $log->action,
+                        $log->model_type,
+                        $log->model_id,
+                        $log->description,
+                        $log->ip_address,
+                    ]);
+                }
+                fclose($f);
+            };
+            return response()->stream($callback, 200, $headers);
+        }
 
         $modelTypes = AuditLog::distinct('model_type')
                               ->pluck('model_type')

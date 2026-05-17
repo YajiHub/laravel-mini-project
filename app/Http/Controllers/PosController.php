@@ -322,6 +322,30 @@ class PosController extends Controller
                     $variant->decrement('quantity', $cartItem['quantity']);
                 }
 
+                // Low stock alert — only if product hits reorder level
+                if ($product->quantity <= $product->low_stock_threshold) {
+                    // Write directly to notifications table without relying on a model class
+                    $alertUsers = \App\Models\User::whereHas('role', fn($q) =>
+                        $q->whereIn('name', ['admin', 'store_manager'])
+                    )->get();
+                    foreach ($alertUsers as $alertUser) {
+                        try {
+                            \DB::table('notifications')->insert([
+                                'user_id'    => $alertUser->id,
+                                'type'       => 'low_stock',
+                                'title'      => 'Low Stock: ' . $product->name,
+                                'message'    => $product->name . ' is low (' . $product->quantity . ' ' . ($product->unit ?? 'units') . ' left).',
+                                'data'       => json_encode(['product_id' => $product->id]),
+                                'is_read'    => false,
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        } catch (\Throwable) {
+                            // Notifications table may not exist — non-critical, skip silently
+                        }
+                    }
+                }
+
                 // Stock transaction log
                 StockTransaction::create([
                     'product_id'         => $product->id,
@@ -344,11 +368,11 @@ class PosController extends Controller
                 'transaction_number' => $transaction->transaction_number,
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage(),
+                'message' => 'Checkout error: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -372,7 +396,7 @@ class PosController extends Controller
         $settings = StoreSetting::asArray();
 
         $pdf = Pdf::loadView('pos.receipt-pdf', compact('transaction', 'settings'))
-            ->setPaper([0, 0, 226.77, 700], 'portrait'); // 80mm thermal-style width
+            ->setPaper('A5', 'portrait');
 
         return $pdf->stream("receipt-{$transaction->transaction_number}.pdf");
     }
@@ -443,6 +467,39 @@ class PosController extends Controller
         $settings     = StoreSetting::asArray();
 
         return view('pos.transactions', compact('transactions', 'settings'));
+    }
+
+    /**
+     * Cashier's own sales history — filtered to the logged-in cashier's transactions.
+     */
+    public function mySales(Request $request)
+    {
+        $query = PosTransaction::with(['items'])
+            ->where('user_id', auth()->id())
+            ->orderBy('transaction_date', 'desc');
+
+        if ($request->filled('from_date')) {
+            $query->whereDate('transaction_date', '>=', $request->from_date);
+        }
+        if ($request->filled('to_date')) {
+            $query->whereDate('transaction_date', '<=', $request->to_date);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $transactions = $query->paginate(20)->withQueryString();
+        $settings     = StoreSetting::asArray();
+        $totalToday   = PosTransaction::where('user_id', auth()->id())
+            ->where('status', 'completed')
+            ->whereDate('transaction_date', today())
+            ->sum('total');
+        $countToday   = PosTransaction::where('user_id', auth()->id())
+            ->where('status', 'completed')
+            ->whereDate('transaction_date', today())
+            ->count();
+
+        return view('pos.my-sales', compact('transactions', 'settings', 'totalToday', 'countToday'));
     }
 
     // ===================== Helpers =====================
