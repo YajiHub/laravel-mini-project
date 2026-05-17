@@ -11,13 +11,13 @@ body {
     background: #fff;
     width: 100%;
 }
-.receipt { width: 100%; padding: 10px 12px; }
+.receipt { width: 100%; max-width: 400px; margin: 0 auto; padding: 8px 10px; }
 
 /* Header */
-.header { text-align: center; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px dashed #bbb; }
-.store-name { font-size: 15px; font-weight: 700; color: #0f172a; }
-.store-sub  { font-size: 9px; color: #64748b; margin-top: 2px; }
-.store-receipt-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; margin-top: 5px; }
+.header { text-align: center; padding-bottom: 6px; margin-bottom: 6px; border-bottom: 1px dashed #bbb; }
+.store-name { font-size: 13px; font-weight: 700; color: #0f172a; }
+.store-sub  { font-size: 8px; color: #64748b; margin-top: 1px; }
+.store-receipt-label { font-size: 8px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; margin-top: 4px; }
 
 /* Void stamp */
 .void-stamp {
@@ -29,41 +29,41 @@ body {
 /* Transaction info — use table layout for dompdf compat */
 .info-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
 .info-table td { padding: 2px 0; font-size: 10px; vertical-align: top; }
-.info-lbl { color: #64748b; width: 38%; }
-.info-val { font-weight: 600; color: #0f172a; }
+.info-lbl { color: #64748b; width: 35%; }
+.info-val { font-weight: 600; color: #0f172a; font-size: 9px; }
 
 /* Divider */
 .divider { border: none; border-top: 1px dashed #bbb; margin: 8px 0; }
 
 /* Items table */
-.items-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.items-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
 .items-table th {
-    font-size: 8px; text-transform: uppercase; color: #64748b;
-    border-bottom: 1px solid #bbb; padding: 4px 3px; text-align: left;
+    font-size: 7px; text-transform: uppercase; color: #64748b;
+    border-bottom: 1px solid #bbb; padding: 3px 2px; text-align: left;
 }
 .items-table th.r { text-align: right; }
-.items-table td { font-size: 10px; padding: 4px 3px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
-.items-table td.r { text-align: right; }
-.item-name { font-weight: 600; }
-.item-sku  { font-size: 8px; color: #94a3b8; margin-top: 1px; }
+.items-table td { font-size: 9px; padding: 3px 2px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+.items-table td.r { text-align: right; word-break: break-all; }
+.item-name { font-weight: 600; font-size: 9px; }
+.item-sku  { font-size: 7px; color: #94a3b8; margin-top: 1px; }
 
-/* Totals — table layout for dompdf */
-.totals-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-.totals-table td { padding: 2px 0; font-size: 11px; vertical-align: top; }
-.totals-table td.lbl { color: #475569; }
-.totals-table td.val { text-align: right; font-weight: 600; color: #0f172a; }
-.totals-table .grand td { font-size: 13px; font-weight: 700; color: #0f172a; border-top: 2px solid #0f172a; padding-top: 5px; margin-top: 4px; }
+/* Totals */
+.totals-table { width: 100%; border-collapse: collapse; margin-top: 3px; }
+.totals-table td { padding: 2px 0; font-size: 10px; vertical-align: top; }
+.totals-table td.lbl { color: #475569; width: 40%; }
+.totals-table td.val { text-align: right; font-weight: 600; color: #0f172a; width: 60%; overflow: hidden; }
+.totals-table .grand td { font-size: 12px; font-weight: 700; color: #0f172a; border-top: 2px solid #0f172a; padding-top: 4px; }
 .totals-table .discount td { color: #dc2626; }
 .totals-table .change-row td {
     background: #f0fdf4; color: #166534; font-weight: 700;
-    font-size: 12px; padding: 4px 6px; border-radius: 3px;
+    font-size: 11px; padding: 3px 5px;
 }
 
 /* Footer */
-.footer { text-align: center; margin-top: 12px; padding-top: 10px; border-top: 1px dashed #bbb; }
-.footer p { font-size: 9px; color: #64748b; margin-bottom: 2px; }
-.footer .thank-you { font-size: 11px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
-.footer .timestamp { font-size: 8px; color: #94a3b8; margin-top: 6px; }
+.footer { text-align: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #bbb; }
+.footer p { font-size: 8px; color: #64748b; margin-bottom: 1px; }
+.footer .thank-you { font-size: 10px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
+.footer .timestamp { font-size: 7px; color: #94a3b8; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -116,9 +116,9 @@ body {
     <thead>
       <tr>
         <th>Item</th>
-        <th class="r" style="width:28px">Qty</th>
-        <th class="r" style="width:58px">Unit Price</th>
-        <th class="r" style="width:62px">Total</th>
+        <th class="r" style="width:22px">Qty</th>
+        <th class="r" style="width:48px">Price</th>
+        <th class="r" style="width:48px">Total</th>
       </tr>
     </thead>
     <tbody>

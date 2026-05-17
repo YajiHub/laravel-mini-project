@@ -67,14 +67,23 @@ class ReportController extends Controller
     public function salesCsv(Request $request)
     {
         $query = PosTransaction::with('user')
-            ->where('status', 'completed')
             ->orderBy('transaction_date', 'desc');
 
-        if ($request->filled('from_date')) {
-            $query->whereDate('transaction_date', '>=', $request->from_date);
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        } else {
+            $query->whereIn('status', ['completed', 'voided']);
         }
-        if ($request->filled('to_date')) {
-            $query->whereDate('transaction_date', '<=', $request->to_date);
+
+        // Default to current month if no dates specified
+        $from = $request->input('from_date', now()->startOfMonth()->toDateString());
+        $to   = $request->input('to_date', now()->toDateString());
+
+        if ($request->filled('from_date') || ! $request->filled('to_date')) {
+            $query->whereDate('transaction_date', '>=', $from);
+        }
+        if ($request->filled('to_date') || ! $request->filled('from_date')) {
+            $query->whereDate('transaction_date', '<=', $to);
         }
 
         $transactions = $query->get();

@@ -107,8 +107,8 @@ Route::middleware(['auth', 'throttle:100,1'])->group(function () {
         Route::post('/pos/{transaction}/void', [PosController::class, 'void'])->name('pos.void');
     });
 
-    // Store Settings - Store Manager & Admin
-    Route::middleware('role:store_manager|admin')->group(function () {
+    // Store Settings & Reports - Store Manager, Inventory Manager & Admin
+    Route::middleware('role:store_manager|inventory_manager|admin')->group(function () {
         Route::get('/settings', [StoreSettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [StoreSettingController::class, 'update'])->name('settings.update');
         // Reports & Exports

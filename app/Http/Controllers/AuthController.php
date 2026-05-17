@@ -208,8 +208,8 @@ class AuthController extends Controller
         $status = Password::sendResetLink($request->only('email'));
 
         return $status === Password::RESET_LINK_SENT
-            ? back()->with('status', __($status))
-            : back()->withErrors(['email' => __($status)]);
+            ? back()->with('status', 'A password reset link has been sent to your email.')
+            : back()->withErrors(['email' => 'Unable to send reset link.']);
     }
 
     /**
@@ -289,7 +289,7 @@ class AuthController extends Controller
         );
 
         return $status === Password::PASSWORD_RESET
-            ? redirect()->route('dashboard')->with('success', __($status))
-            : back()->withErrors(['email' => [__($status)]]);
+            ? redirect()->route('dashboard')->with('success', 'Your password has been reset.')
+            : back()->withErrors(['email' => ['Password reset failed. The link may have expired.']]);
     }
 }
