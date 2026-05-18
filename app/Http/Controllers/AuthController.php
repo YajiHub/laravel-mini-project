@@ -75,6 +75,14 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $user = Auth::user();
 
+            // Block deactivated users
+            if ($user->deactivated_at) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Your account has been deactivated. Please contact an administrator.',
+                ])->withInput($request->only('email'));
+            }
+
             // Record successful login
             LoginAttempt::recordAttempt($request->email, true);
 

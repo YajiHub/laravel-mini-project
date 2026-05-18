@@ -85,7 +85,11 @@ class Product extends Model
 
     public function getTotalVariantQuantity(): int
     {
-        return $this->variants->sum('quantity') + $this->quantity;
+        $variantCount = $this->variants->count();
+        if ($variantCount > 0) {
+            return $this->variants->sum('quantity');
+        }
+        return $this->quantity;
     }
 
     public function getAvailableQuantity(): int
