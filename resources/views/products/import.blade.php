@@ -16,6 +16,12 @@
     </div>
     @endif
 
+    @if(session('error'))
+    <div class="mb-5 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm font-medium">
+      <i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') }}
+    </div>
+    @endif
+
     @if(session('import_errors'))
     <div class="mb-5 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800 text-sm">
       <strong><i class="fas fa-exclamation-triangle mr-2"></i>Some rows were skipped:</strong>

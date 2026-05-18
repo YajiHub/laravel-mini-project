@@ -22,7 +22,7 @@
       <div class="text-center">
         <p class="text-sm text-gray-600 mb-4">Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
         <div class="inline-block bg-white p-3 border border-gray-200 rounded-lg">
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ urlencode($qrUrl) }}" alt="MFA QR Code" class="w-48 h-48">
+          {!! $qrSvg !!}
         </div>
         <p class="text-xs text-gray-400 mt-3">Or enter this key manually in your app:</p>
         <code class="inline-block mt-1 px-3 py-1 bg-gray-100 rounded text-sm font-mono text-blue-700 break-all">{{ auth()->user()->mfa_secret }}</code>

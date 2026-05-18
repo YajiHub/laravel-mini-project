@@ -267,7 +267,7 @@
             @method('DELETE')
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Enter your password to confirm</label>
-                <input type="password" name="password" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Your account password">
+                <x-password-input name="password" required class="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Your account password" />
             </div>
             <div class="flex gap-3 pt-2">
                 <button type="submit" class="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-sm transition">

@@ -75,7 +75,7 @@
         @enderror
 
         <label for="password_confirmation">Confirm Password</label>
-        <input type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required placeholder="Re-enter your new password">
+        <x-password-input id="password_confirmation" name="password_confirmation" autocomplete="new-password" required placeholder="Re-enter your new password" style="width:100%; padding:11px 14px; padding-right:40px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:14px; outline:none" />
 
         <button type="submit" class="btn">
             <i class="fas fa-key" style="margin-right:8px"></i>Reset Password

@@ -172,7 +172,7 @@
                                                 <form method="POST" action="{{ route('products.destroy', $product) }}" class="space-y-4">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <input type="password" name="password" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Your password to confirm">
+                                                    <x-password-input name="password" required class="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Your password to confirm" />
                                                     <div class="flex gap-3">
                                                         <button type="submit" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-sm">Delete</button>
                                                         <button type="button" onclick="document.getElementById('delete-modal-{{ $product->id }}').style.display='none'" class="flex-1 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg text-sm">Cancel</button>

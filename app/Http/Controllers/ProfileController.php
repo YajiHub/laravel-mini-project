@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class ProfileController extends Controller
 {
@@ -50,8 +51,9 @@ class ProfileController extends Controller
         }
 
         $qrUrl = $this->getTotpQrUrl($user->email, $user->mfa_secret);
+        $qrSvg = QrCode::format('svg')->size(200)->generate($qrUrl);
 
-        return view('profile.mfa-setup', compact('qrUrl'));
+        return view('profile.mfa-setup', compact('qrUrl', 'qrSvg'));
     }
 
     public function enableMfa(Request $request)

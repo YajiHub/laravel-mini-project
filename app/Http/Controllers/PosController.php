@@ -331,14 +331,15 @@ class PosController extends Controller
                     foreach ($alertUsers as $alertUser) {
                         try {
                             \DB::table('notifications')->insert([
-                                'user_id'    => $alertUser->id,
-                                'type'       => 'low_stock',
-                                'title'      => 'Low Stock: ' . $product->name,
-                                'message'    => $product->name . ' is low (' . $product->quantity . ' ' . ($product->unit ?? 'units') . ' left).',
-                                'data'       => json_encode(['product_id' => $product->id]),
-                                'is_read'    => false,
-                                'created_at' => now(),
-                                'updated_at' => now(),
+                                'user_id'       => $alertUser->id,
+                                'type'          => 'low_stock',
+                                'title'         => 'Low Stock: ' . $product->name,
+                                'message'       => $product->name . ' is low (' . $product->quantity . ' ' . ($product->unit ?? 'units') . ' left).',
+                                'related_model' => \App\Models\Product::class,
+                                'related_id'    => $product->id,
+                                'is_read'       => false,
+                                'created_at'    => now(),
+                                'updated_at'    => now(),
                             ]);
                         } catch (\Throwable) {
                             // Notifications table may not exist — non-critical, skip silently

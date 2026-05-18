@@ -257,29 +257,33 @@ class ProductController extends Controller
             'file' => 'required|file|mimes:csv,xlsx,xls|max:10240',
         ]);
 
-        $import = new ProductsImport();
-        Excel::import($import, $request->file('file'));
+        try {
+            $import = new ProductsImport();
+            Excel::import($import, $request->file('file'));
 
-        $imported = $import->getImportedCount();
-        $failures = $import->failures();
+            $imported = $import->getImportedCount();
+            $failures = $import->failures();
 
-        AuditLog::create([
-            'action'     => 'import',
-            'model_type' => Product::class,
-            'user_id'    => auth()->id(),
-            'description' => "Imported {$imported} products" . ($failures->count() ? " ({$failures->count()} skipped)" : ''),
-            'ip_address' => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-        ]);
+            AuditLog::create([
+                'action'     => 'import',
+                'model_type' => Product::class,
+                'user_id'    => auth()->id(),
+                'description' => "Imported {$imported} products" . ($failures->count() ? " ({$failures->count()} skipped)" : ''),
+                'ip_address' => $request->ip(),
+                'user_agent'  => $request->userAgent(),
+            ]);
 
-        if ($failures->count() > 0) {
-            $errors = $failures->map(fn($f) => "Row {$f->row()}: " . implode(', ', $f->errors()))->toArray();
-            return back()
-                ->with('success', "{$imported} products imported.")
-                ->with('import_errors', $errors);
+            if ($failures->count() > 0) {
+                $errors = $failures->map(fn($f) => "Row {$f->row()}: " . implode(', ', $f->errors()))->toArray();
+                return back()
+                    ->with('success', "{$imported} products imported.")
+                    ->with('import_errors', $errors);
+            }
+
+            return redirect()->route('products.index')->with('success', "{$imported} products imported successfully.");
+        } catch (\Exception $e) {
+            return back()->with('error', 'Import failed: ' . $e->getMessage());
         }
-
-        return redirect()->route('products.index')->with('success', "{$imported} products imported successfully.");
     }
 
     public function exportExcel()
