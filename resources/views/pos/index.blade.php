@@ -275,7 +275,7 @@ function selectProduct(pJson) {
   const vd = document.getElementById('modal-variants');
   if (p.has_variants && p.variants.length) {
     vd.innerHTML = '<div class="field-lbl">Select Variant</div><select id="modal-variant-sel" class="field-sm">'
-      + '<option value="">Standard</option>'
+      + '<option value="">Standard [Stock:' + p.quantity + ']</option>'
       + p.variants.map(v=>`<option value="${v.id}">${v.name}${v.price_modifier>0?' (+'+CURRENCY+v.price_modifier.toFixed(2)+')':''} [Stock:${v.quantity}]</option>`).join('')
       + '</select>';
   } else { vd.innerHTML = ''; }

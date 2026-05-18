@@ -317,9 +317,10 @@ class PosController extends Controller
                 ]);
 
                 // Deduct stock
-                $product->decrement('quantity', $cartItem['quantity']);
                 if ($variant) {
                     $variant->decrement('quantity', $cartItem['quantity']);
+                } else {
+                    $product->decrement('quantity', $cartItem['quantity']);
                 }
 
                 // Low stock alert — only if product hits reorder level
@@ -419,11 +420,10 @@ class PosController extends Controller
         try {
             // Restore stock
             foreach ($transaction->items as $item) {
-                if ($item->product) {
-                    $item->product->increment('quantity', $item->quantity);
-                }
                 if ($item->variant) {
                     $item->variant->increment('quantity', $item->quantity);
+                } elseif ($item->product) {
+                    $item->product->increment('quantity', $item->quantity);
                 }
 
                 StockTransaction::create([
