@@ -263,8 +263,8 @@ class PosController extends Controller
             }
 
             $afterDiscount = $subtotal - $discountAmount;
-            $taxAmount     = round($afterDiscount * $taxRate / 100, 2);
-            $total         = $afterDiscount + $taxAmount;
+            $taxAmount     = round($subtotal * $taxRate / 100, 2);
+            $total         = $subtotal + $taxAmount - $discountAmount;
 
             // Calculate change for cash payments
             $cashTendered  = null;

@@ -107,6 +107,37 @@
   </div>
 </div>
 
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-gray-400 uppercase">Inventory Value</span>
+      <span class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600"><i class="fas fa-coins text-sm"></i></span>
+    </div>
+    <p class="text-2xl font-extrabold text-green-600">&#x20b1;{{ number_format($inventoryValue, 2) }}</p>
+  </div>
+  <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-gray-400 uppercase">With Variants</span>
+      <span class="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center text-cyan-600"><i class="fas fa-cubes text-sm"></i></span>
+    </div>
+    <p class="text-2xl font-extrabold text-gray-800">{{ $variantProductsCount }}</p>
+  </div>
+  <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-gray-400 uppercase">Suppliers</span>
+      <span class="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center text-teal-600"><i class="fas fa-truck text-sm"></i></span>
+    </div>
+    <p class="text-2xl font-extrabold text-gray-800">{{ $stats['total_suppliers'] }}</p>
+  </div>
+  <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-gray-400 uppercase">Out of Stock</span>
+      <span class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600"><i class="fas fa-times-circle text-sm"></i></span>
+    </div>
+    <p class="text-2xl font-extrabold text-red-600">{{ $stats['out_of_stock'] }}</p>
+  </div>
+</div>
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
   <div class="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
     <h2 class="text-base font-semibold text-gray-800 mb-4"><i class="fas fa-chart-bar mr-2 text-blue-500"></i>Stock Activity — Last 7 Days</h2>
@@ -123,22 +154,31 @@
   </div>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-  <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-    <h2 class="text-base font-semibold text-gray-800"><i class="fas fa-exclamation-triangle mr-2 text-yellow-500"></i>Low Stock Items</h2>
-    <a href="{{ route('products.index') }}" class="text-xs text-blue-600 hover:underline">View all</a>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+    <h2 class="text-base font-semibold text-gray-800 mb-4"><i class="fas fa-chart-pie mr-2 text-purple-500"></i>Products by Category</h2>
+    <canvas id="categoryChart" height="200"></canvas>
   </div>
-  @forelse($lowStockProducts as $product)
-  <div class="px-5 py-3 border-b border-gray-50 flex items-center justify-between hover:bg-gray-50">
-    <div>
-      <p class="text-sm font-medium text-gray-800">{{ $product->name }}</p>
-      <p class="text-xs text-gray-500">{{ $product->category?->name }} &bull; SKU: {{ $product->sku }}</p>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+      <h2 class="text-base font-semibold text-gray-800"><i class="fas fa-exclamation-triangle mr-2 text-yellow-500"></i>Low Stock Items</h2>
+      <a href="{{ route('products.index') }}" class="text-xs text-blue-600 hover:underline">View all</a>
     </div>
-    <span class="text-sm font-bold {{ $product->quantity == 0 ? 'text-red-600' : 'text-yellow-600' }}">{{ $product->quantity }} left</span>
+    @forelse($lowStockEntries as $entry)
+    <div class="px-5 py-3 border-b border-gray-50 flex items-center justify-between hover:bg-gray-50">
+      <div>
+        <div class="flex items-center gap-2">
+          <p class="text-sm font-medium text-gray-800">{{ $entry['name'] }}</p>
+          <span class="text-xs px-1.5 py-0.5 rounded-full {{ $entry['type'] === 'variant' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600' }} font-medium">{{ ucfirst($entry['type']) }}</span>
+        </div>
+        <p class="text-xs text-gray-500">{{ $entry['category'] }} &bull; SKU: {{ $entry['sku'] }}</p>
+      </div>
+      <span class="text-sm font-bold {{ $entry['qty'] == 0 ? 'text-red-600' : 'text-yellow-600' }}">{{ $entry['qty'] }} / {{ $entry['threshold'] }}</span>
+    </div>
+    @empty
+    <div class="px-5 py-8 text-center text-gray-400 text-sm"><i class="fas fa-check-circle text-green-400 text-2xl mb-2 block"></i>All items are well stocked</div>
+    @endforelse
   </div>
-  @empty
-  <div class="px-5 py-8 text-center text-gray-400 text-sm"><i class="fas fa-check-circle text-green-400 text-2xl mb-2 block"></i>All products are well stocked</div>
-  @endforelse
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
@@ -150,6 +190,13 @@ new Chart(document.getElementById('stockChart').getContext('2d'), {
     { label: 'Stock Out', data: @json($chartData->pluck('stock_out')), backgroundColor: '#ef4444', borderRadius: 4 }
   ]},
   options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+});
+new Chart(document.getElementById('categoryChart').getContext('2d'), {
+  type: 'doughnut',
+  data: { labels: @json($categoryDistribution->keys()), datasets: [
+    { data: @json($categoryDistribution->values()), backgroundColor: ['#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16','#f97316','#6366f1'] }
+  ]},
+  options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
 });
 </script>
 
@@ -185,6 +232,41 @@ new Chart(document.getElementById('stockChart').getContext('2d'), {
       <span class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600"><i class="fas fa-exclamation-triangle text-sm"></i></span>
     </div>
     <p class="text-2xl font-extrabold text-yellow-600">{{ $stats['low_stock_count'] }}</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-gray-400 uppercase">Est. Profit (Month)</span>
+      <span class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600"><i class="fas fa-chart-line text-sm"></i></span>
+    </div>
+    <p class="text-2xl font-extrabold text-emerald-600">&#x20b1;{{ number_format(max(0, $profitEstimate), 2) }}</p>
+  </div>
+  <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    @php
+      $pctChange = $lastMonthSales > 0 ? round((($stats['sales_this_month'] - $lastMonthSales) / $lastMonthSales) * 100, 1) : 0;
+    @endphp
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-gray-400 uppercase">vs Last Month</span>
+      <span class="w-8 h-8 rounded-lg flex items-center justify-center text-sm {{ $pctChange >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' }}"><i class="fas {{ $pctChange >= 0 ? 'fa-arrow-up' : 'fa-arrow-down' }}"></i></span>
+    </div>
+    <p class="text-2xl font-extrabold {{ $pctChange >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ $pctChange >= 0 ? '+' : '' }}{{ $pctChange }}%</p>
+    <p class="text-xs text-gray-400 mt-1">&#x20b1;{{ number_format($lastMonthSales, 2) }} last month</p>
+  </div>
+  <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-gray-400 uppercase">Products</span>
+      <span class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600"><i class="fas fa-boxes text-sm"></i></span>
+    </div>
+    <p class="text-2xl font-extrabold text-gray-800">{{ $stats['total_products'] }}</p>
+  </div>
+  <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-gray-400 uppercase">Out of Stock</span>
+      <span class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600"><i class="fas fa-times-circle text-sm"></i></span>
+    </div>
+    <p class="text-2xl font-extrabold text-red-600">{{ $stats['out_of_stock'] }}</p>
   </div>
 </div>
 
@@ -253,6 +335,36 @@ new Chart(document.getElementById('salesChart').getContext('2d'), {
     { label: 'Revenue (₱)', data: @json($salesChartData->pluck('revenue') ?? collect()->pluck('revenue')), borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.1)', tension: 0.4, fill: true }
   ]},
   options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+});
+</script>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+  <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+    <h2 class="text-base font-semibold text-gray-800 mb-4"><i class="fas fa-credit-card mr-2 text-indigo-500"></i>Sales by Payment Method (Month)</h2>
+    <canvas id="paymentChart" height="200"></canvas>
+  </div>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+      <h2 class="text-base font-semibold text-gray-800"><i class="fas fa-tags mr-2 text-purple-500"></i>Top Categories (Month)</h2>
+    </div>
+    @forelse($topCategories as $cat => $revenue)
+    <div class="px-5 py-3 border-b border-gray-50 flex items-center justify-between hover:bg-gray-50">
+      <span class="text-sm font-medium text-gray-800">{{ $cat }}</span>
+      <span class="text-sm font-bold text-purple-600">&#x20b1;{{ number_format($revenue, 2) }}</span>
+    </div>
+    @empty
+    <div class="px-5 py-8 text-center text-gray-400 text-sm">No sales data this month</div>
+    @endforelse
+  </div>
+</div>
+
+<script>
+new Chart(document.getElementById('paymentChart').getContext('2d'), {
+  type: 'doughnut',
+  data: { labels: @json($paymentBreakdown->keys()), datasets: [
+    { data: @json($paymentBreakdown->values()), backgroundColor: ['#22c55e','#3b82f6','#f59e0b','#8b5cf6','#ef4444','#06b6d4'] }
+  ]},
+  options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
 });
 </script>
 

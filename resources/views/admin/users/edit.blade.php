@@ -66,7 +66,7 @@
                     <p class="text-sm text-gray-600">
                         <strong>Status:</strong> 
                         @if($user->deactivated_at)
-                            <span class="text-red-600">Inactive (Deactivated on {{ $user->deactivated_at->format('M d, Y H:i A') }})</span>
+                            <span class="text-red-600">Inactive (Deactivated on {{ \Carbon\Carbon::parse($user->deactivated_at)->format('M d, Y H:i A') }})</span>
                         @else
                             <span class="text-green-600">Active</span>
                         @endif

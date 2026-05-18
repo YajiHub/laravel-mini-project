@@ -366,9 +366,8 @@ function recalc() {
   const dt = document.getElementById('discount-type').value;
   let disc = dt==='percentage' ? cartData.subtotal*dv/100 : dv;
   disc = Math.min(disc, cartData.subtotal);
-  const afterDisc = cartData.subtotal - disc;
-  const tax = afterDisc * cartData.tax_rate / 100;
-  const total = afterDisc + tax;
+  const tax = cartData.subtotal * cartData.tax_rate / 100;
+  const total = cartData.subtotal + tax - disc;
   updateTotals(cartData.subtotal, tax, total);
 }
 

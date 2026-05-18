@@ -77,7 +77,7 @@
                     <hr>
                     <div>
                         <p class="text-xs font-semibold text-gray-500 uppercase">Deactivated At</p>
-                        <p class="mt-1 text-red-600 font-semibold">{{ $user->deactivated_at->format('M d, Y H:i A') }}</p>
+                        <p class="mt-1 text-red-600 font-semibold">{{ \Carbon\Carbon::parse($user->deactivated_at)->format('M d, Y H:i A') }}</p>
                     </div>
                 @endif
 

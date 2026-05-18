@@ -138,17 +138,23 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->category->name }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->supplier->name }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
-                                            @if($product->quantity == 0)
-                                                bg-gray-100 text-gray-800
-                                            @elseif($product->quantity <= $product->low_stock_threshold)
-                                                bg-red-100 text-red-800
-                                            @else
-                                                bg-green-100 text-green-800
+                                        @php $totalQty = $product->getTotalVariantQuantity(); @endphp
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                                @if($totalQty == 0)
+                                                    bg-gray-100 text-gray-800
+                                                @elseif($totalQty <= $product->low_stock_threshold)
+                                                    bg-red-100 text-red-800
+                                                @else
+                                                    bg-green-100 text-green-800
+                                                @endif
+                                            ">
+                                                {{ $totalQty }}
+                                            </span>
+                                            @if($product->variants->count() > 0)
+                                            <span class="text-xs text-gray-400 font-medium">{{ $product->variants->count() }} variant{{ $product->variants->count() > 1 ? 's' : '' }}</span>
                                             @endif
-                                        ">
-                                            {{ $product->quantity }}
-                                        </span>
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{{ number_format($product->price, 2) }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
