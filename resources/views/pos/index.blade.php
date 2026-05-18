@@ -213,10 +213,12 @@ function renderProducts(prods) {
   }
   prods.forEach(p => { window._posProducts[p.id] = p; });
   g.innerHTML = prods.map(p => {
-    const oos = p.quantity <= 0;
+    const totalQty = p.total_quantity ?? p.quantity;
+    const variantCount = (p.variants && p.variants.length) || 0;
+    const oos = totalQty <= 0;
     const stockBadge = oos
       ? '<span style="color:#ef4444">Out of stock</span>'
-      : 'Stock: ' + p.quantity + (p.unit ? ' ' + p.unit : '');
+      : 'Stock: ' + totalQty + (variantCount > 0 ? ' <span style="font-size:10px;color:#6b7280">(' + variantCount + ' variant' + (variantCount > 1 ? 's' : '') + ')</span>' : '') + (p.unit ? ' ' + p.unit : '');
     const imgHtml = p.image
       ? '<img src="' + p.image + '" alt="' + p.name + '" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:6px;display:block">'
       : '<div class="prod-icon"><i class="fas fa-box-open text-blue-400"></i></div>';

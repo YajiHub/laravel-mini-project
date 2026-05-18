@@ -522,6 +522,7 @@ class PosController extends Controller
             'sku'                => $product->sku,
             'price'              => (float) $product->price,
             'quantity'           => $product->quantity,
+            'total_quantity'     => $product->getTotalVariantQuantity(),
             'unit'               => $product->unit,
             'category'           => $product->category?->name,
             'image'              => $product->image
